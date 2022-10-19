@@ -6,12 +6,15 @@ class Matrix:
             self.grid = grid
         self.n = int(len(grid)**(1/2))
         self.parent = parent
+        self.children = []
         if parent is not None:
-            self.pieces = parent.pieces.copy()
-            self.horizontal_pieces = parent.horizontal_pieces
-            self.vertical_pieces = parent.vertical_pieces
+            #self.depth = parent.depth + 1
+            self.pieces = parent.pieces.copy() #copy by value
+            self.horizontal_pieces = parent.horizontal_pieces #copy by reference
+            self.vertical_pieces = parent.vertical_pieces #copy by reference
             self.path = parent.path + action
             return
+        #self.depth = 0
         self.pieces = {}
         self.horizontal_pieces = []
         self.vertical_pieces = []
@@ -45,12 +48,12 @@ class Matrix:
     def is_vertical(self, piece: str) -> bool:
         return piece in self.vertical_pieces
 
-    def in_parent(self, grid):
-        if self.parent == None:
-            return False
-        if self.parent.grid == grid:
-            return True
-        return self.parent.in_parent(grid) 
+    # def in_parent(self, grid):
+    #     if self.parent == None:
+    #         return False
+    #     if self.parent.grid == grid:
+    #         return True
+    #     return self.parent.in_parent(grid) 
 
     def __repr__(self) -> str:
         output = ""
@@ -67,6 +70,16 @@ class AI:
 
     def replace_char(s, index, newchar):
         return s[:index] + newchar + s[index+1:]
+
+    def is_duplicated(root: Matrix, grid):
+        if len(root.children) == 0:
+            return False
+        for child in root.children:
+            if child.grid == grid:
+                return True
+            if AI.is_duplicated(child, grid):
+                return True
+        return False
 
     def actions(state: Matrix):
         actions = []
@@ -119,11 +132,12 @@ class AI:
 class SearchTree:
     def __init__(self, root: Matrix, strategy='breadth'):
         print(root)
+        self.root = root
         self.open_nodes = [root]
         self.strategy = strategy
         self.solution = None
 
-    def search(self):
+    def search(self):#, limit=1000):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
             if AI.goal_test(node):
@@ -133,34 +147,33 @@ class SearchTree:
                 print(node.path)
                 return node.path
             lnewnodes = []
+            # if node.depth == limit:
+            #     continue
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
-                if not node.in_parent(newgrid):
+                if not AI.is_duplicated(self.root, newgrid):
+                    #(minx, maxx, miny, maxy) = bounds
                     newnode = Matrix(newgrid, [a], node)
                     newnode.set_bounds(a[0], bounds)
                     lnewnodes.append(newnode)
+            node.children = lnewnodes
             self.add_to_open(lnewnodes)
         return None
 
     def add_to_open(self,lnewnodes):
-        self.open_nodes.extend(lnewnodes)
+        if self.strategy == 'breadth':
+            self.open_nodes.extend(lnewnodes)
+        elif self.strategy == 'depth':
+            self.open_nodes[:0] = lnewnodes
 
-matrix = Matrix("08 ooxCCCoHxooLoHJAALoIJEEEoIFFKooGGoKo 84")
-t = SearchTree(matrix, "breadth")
-t.search()
 
-# print(matrix.pieces["C"])
-# print(matrix)
-# newgrid, bounds = AI.result(matrix, ("C", "w"))
-# matrix2 = Matrix(newgrid, [("C", "w")], matrix)
-# matrix2.set_bounds("C", bounds)
-# print(matrix.pieces["C"])
-# print(matrix2.pieces["C"])
-# print(matrix2)
-# newgrid, bounds = AI.result(matrix2, ("C", "s"))
-# matrix3 = Matrix(newgrid, [("C", "s")], matrix2)
-# matrix3.set_bounds("C", bounds)
-# print(matrix.pieces["C"])
-# print(matrix2.pieces["C"])
-# print(matrix3.pieces["C"])
-# print(matrix3)
+def main():
+    with open("levels.txt", "r") as f:
+        for i in range(1, 57):
+            print(i)
+            matrix = Matrix(f.readline().strip())
+            t = SearchTree(matrix, "depth")
+            t.search()
+
+if __name__ == "__main__":
+    main()
