@@ -15,11 +15,13 @@ from tree_search import *
 
 
 # for simplicity's sake let's assume the cursor will always select the piece from its maximum x and y coordinates.
-def moveCursor(cursor, piece):
+def moveCursor(cursor, piece, selected):
     cursorx, cursory = cursor
     piecemin_x, piecemax_x, piecemin_y, piecemax_y = piece
     path = ""
-    while (cursorx != piecemax_x and cursory != piecemax_y):
+    if selected != "":
+        path += " "
+    while (cursorx != piecemax_x or cursory != piecemax_y):
         if cursorx > piecemax_x:
             path += "a"
             cursorx -= 1
@@ -27,11 +29,11 @@ def moveCursor(cursor, piece):
             path += "d"
             cursorx += 1
         
-        if cursorx > piecemax_y:
-            path += "s"
-            cursory -= 1
-        elif cursorx < piecemax_y:
+        if cursory > piecemax_y:
             path += "w"
+            cursory -= 1
+        elif cursory < piecemax_y:
+            path += "s"
             cursory += 1
     path += " "
     return path
@@ -68,7 +70,8 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                         key = result.pop(0)
                         if selected != key[0]:
                             key_bounds = m.pieces[key[0]]
-                            commands = list(moveCursor(cursor, key_bounds))
+                            print(key_bounds)
+                            commands += list(moveCursor(cursor, key_bounds, selected))
                         commands += key[1]
                 print(commands)
                 await websocket.send(json.dumps({"cmd": "key", "key": commands.pop(0)}))
