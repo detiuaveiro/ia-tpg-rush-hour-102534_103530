@@ -15,9 +15,9 @@ from tree_search import *
 
 
 # for simplicity's sake let's assume the cursor will always select the piece from its maximum x and y coordinates.
-def moveCursor(cursor, piece, selected):
+async def moveCursor(cursor, piece_bounds, piece_char, selected):
     cursorx, cursory = cursor
-    piecemin_x, piecemax_x, piecemin_y, piecemax_y = piece
+    piecemin_x, piecemax_x, piecemin_y, piecemax_y = piece_bounds
     path = ""
     if selected != "":
         path += " "
@@ -45,19 +45,24 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
 
         # Receive information about static game properties
         await websocket.send(json.dumps({"cmd": "join", "name": agent_name}))
+
         previous_grid = ""
+        previous_level = ""
         cou = 0
+        commands = []
+
         while True:
             try:
-                state = json.loads(
-                    await websocket.recv()
-                )  # receive game update, this must be called timely or your game will get out of sync with the server
+                state = json.loads(await websocket.recv())  # receive game update, this must be called timely or your game will get out of sync with the server
 
                 grid = state.get("grid")
+                level = state.get("level")
                 if previous_grid != grid:
                     previous_grid = grid
-                    commands = []
-                    print("re-calcula " + str(cou))
+                    if level != previous_level:
+                        previous_level = level
+                        cou = 0
+                    print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
                     cursor = state.get("cursor")
 
@@ -65,21 +70,25 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     
                     m = Matrix(grid)
                     t = SearchTree(m, "breadth")
-                    result = t.search()
-                    print("Solução: " + str(result))
+                    result = await t.search()
+                    commands = []
+                    print("Solução encontrada: " + str(result))
                     if result:
                         key = result.pop(0)
                         if selected != key[0]:
+                            print("Piece to be selected: " + str(key[0]) + " with coords: " + str(m.pieces[key[0]]))
                             key_bounds = m.pieces[key[0]]
-                            commands += list(moveCursor(cursor, key_bounds, selected))
+                            commands += list(await moveCursor(cursor, key_bounds, key[0], selected))
                         commands += key[1]
-                print("Comandos: " + str(commands))
-                print("Cursor: " + str(cursor))
-                if commands != []:       
+                    print("Comandos: " + str(commands))
+                    print("Cursor: " + str(cursor))
+                    print("Selected Piece: " + str(selected))
+                     
+                if commands != []:     
                     command = commands.pop(0)
-                await websocket.send(json.dumps({"cmd": "key", "key": command}))
-                # )  # send key command to server - you must implement this send in the AI agent
-
+                    print("Next command to send '" + str(command) + "'")
+                    await websocket.send(json.dumps({"cmd": "key", "key": command})) # send key command to server - you must implement this send in the AI agent
+            
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
                 return

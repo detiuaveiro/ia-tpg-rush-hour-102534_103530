@@ -131,20 +131,20 @@ class AI:
 
 class SearchTree:
     def __init__(self, root: Matrix, strategy='breadth'):
-        print(root)
+        #print(root)
         self.root = root
         self.open_nodes = [root]
         self.strategy = strategy
         self.solution = None
 
-    def search(self):#, limit=1000):
+    async def search(self):#, limit=1000):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
             if AI.goal_test(node):
                 self.solution = node
-                print("SOLUÇÃO")
-                print(node)
-                print(node.path)
+                #print("SOLUÇÃO")
+                #print(node)
+                #print(node.path)
                 return node.path
             lnewnodes = []
             # if node.depth == limit:
