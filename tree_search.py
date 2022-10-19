@@ -137,7 +137,7 @@ class SearchTree:
         self.strategy = strategy
         self.solution = None
 
-    async def search(self):#, limit=1000):
+    def search(self):#, limit=1000):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
             if AI.goal_test(node):
