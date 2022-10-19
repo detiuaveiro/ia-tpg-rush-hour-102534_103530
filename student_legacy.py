@@ -21,28 +21,52 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         # Receive information about static game properties
         await websocket.send(json.dumps({"cmd": "join", "name": agent_name}))
         previous_grid = ""
+        previous_key = ""
         while True:
             try:
                 state = json.loads(
                     await websocket.recv()
                 )  # receive game update, this must be called timely or your game will get out of sync with the server
 
+                #pprint(state)
+                cursor = state.get("cursor")
                 grid = state.get("grid")
                 
-                if previous_grid != grid:
-                    print("calcula")
-                    cursor = state.get("cursor")
+                if previous_key == " ":
                     selected = state.get("selected")
-                    m = SearchMap(grid)
-                    t = SearchTree(m, "breadth")
-                    result = t.search()
-                    print(result)
-                    if result:
-                        key = result.pop(0)
+                    print("Selected:", selected)
+                    coords = m.piece_coordinates(selected)[-1]
+                    print("Selected coords:", coords)
+                    grid = grid.split(" ")[1]
+                    i = coords.y * m.grid_size + coords.x + 1
+                    limit = (coords.y + 1) * m.grid_size
+                    line = grid[i:limit]
+                    if line == "o" * len(line):
+                        print("sim")
+                        result = ["d"] * len(line)
+                    key = "S"
+                else:
+                    if previous_key == "S":
+                        key = ""
+                        if result:
+                            key = result.pop(0)
+                            print(key)
+                    elif previous_grid != grid:
+                        print("calcula")
+                        m = Map(grid)
+                        coords = m.piece_coordinates("A")
+                        p = SearchProblem(SearchDomain(m), cursor, coords)
+                        t = SearchTree(p, "breadth")
+                        result = t.search()
+                        key = " "
+                        if result:
+                            key = result.pop(0)
+                        print(key)
 
-                # await websocket.send(
-                #     json.dumps({"cmd": "key", "key": key})
-                # )  # send key command to server - you must implement this send in the AI agent
+                previous_key = key
+                await websocket.send(
+                    json.dumps({"cmd": "key", "key": key})
+                )  # send key command to server - you must implement this send in the AI agent
 
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
