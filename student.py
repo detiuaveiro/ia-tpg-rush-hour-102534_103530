@@ -46,6 +46,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         # Receive information about static game properties
         await websocket.send(json.dumps({"cmd": "join", "name": agent_name}))
         previous_grid = ""
+        cou = 0
         while True:
             try:
                 state = json.loads(
@@ -54,27 +55,29 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
 
                 grid = state.get("grid")
                 if previous_grid != grid:
-                    print("calcula")
+                    previous_grid = grid
+                    commands = []
+                    print("re-calcula " + str(cou))
+                    cou += 1
                     cursor = state.get("cursor")
 
                     selected = state.get("selected")
-                    print(cursor)
                     
-                    print("Selected: " + selected)
                     m = Matrix(grid)
                     t = SearchTree(m, "breadth")
                     result = t.search()
-                    print(result)
+                    print("Solução: " + str(result))
                     if result:
-                        commands = []
                         key = result.pop(0)
                         if selected != key[0]:
                             key_bounds = m.pieces[key[0]]
-                            print(key_bounds)
                             commands += list(moveCursor(cursor, key_bounds, selected))
                         commands += key[1]
-                print(commands)
-                await websocket.send(json.dumps({"cmd": "key", "key": commands.pop(0)}))
+                print("Comandos: " + str(commands))
+                print("Cursor: " + str(cursor))
+                if commands != []:       
+                    command = commands.pop(0)
+                await websocket.send(json.dumps({"cmd": "key", "key": command}))
                 # )  # send key command to server - you must implement this send in the AI agent
 
             except websockets.exceptions.ConnectionClosedOK:
