@@ -7,7 +7,7 @@ class Matrix:
         self.n = int(len(grid)**(1/2))
         self.parent = parent
         if parent is not None:
-            self.pieces = parent.pieces
+            self.pieces = parent.pieces.copy()
             self.horizontal_pieces = parent.horizontal_pieces
             self.vertical_pieces = parent.vertical_pieces
             self.path = parent.path + action
@@ -16,8 +16,6 @@ class Matrix:
         self.horizontal_pieces = []
         self.vertical_pieces = []
         self.path = action
-        if len(self.pieces) != 0:
-            return
         for x in range(self.n):
             for y in range(self.n):
                 idx = y*self.n+x
@@ -74,9 +72,6 @@ class AI:
         actions = []
         for char, bounds in state.pieces.items():
             minx, maxx, miny, maxy = bounds
-            if char == "C":
-                print(bounds)
-                print(state)
             if state.is_horizontal(char):
                 if minx > 0 and state.get(minx-1, miny) == "o": # miny = maxy
                     actions.append((char, "a"))
@@ -120,29 +115,10 @@ class AI:
     def goal_test(state: Matrix):
         return state.pieces["A"][1] == state.n-1 # maxx de A == n-1
 
-"""
-# Nos de uma arvore de pesquisa
-class SearchNode:
-    def __init__(self, state, parent): 
-        self.state = state
-        self.parent = parent
-
-    def __str__(self):
-        return str(self.state)
-    
-    def __repr__(self):
-        return str(self)
-
-    def in_parent(self, state):
-        if self.parent == None:
-            return False
-        if self.parent.state == state:
-            return True
-        return self.parent.in_parent(state)
-"""
 
 class SearchTree:
-    def __init__(self, root: Matrix, strategy='breadth'): 
+    def __init__(self, root: Matrix, strategy='breadth'):
+        print(root)
         self.open_nodes = [root]
         self.strategy = strategy
         self.solution = None
@@ -150,17 +126,16 @@ class SearchTree:
     def search(self):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
-            print()
-            print("PATH", node.path)
             if AI.goal_test(node):
                 self.solution = node
+                print("SOLUÇÃO")
                 print(node)
+                print(node.path)
                 return node.path
             lnewnodes = []
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
                 if not node.in_parent(newgrid):
-                    print(a)
                     newnode = Matrix(newgrid, [a], node)
                     newnode.set_bounds(a[0], bounds)
                     lnewnodes.append(newnode)
@@ -170,37 +145,22 @@ class SearchTree:
     def add_to_open(self,lnewnodes):
         self.open_nodes.extend(lnewnodes)
 
-matrix = Matrix("03 ooBoooooBooCAABooCoooooooooooooooooo 62")
-
-# A DESLOCAÇÃO FUNCIONA
-# print(matrix.pieces["B"])
-# print(matrix)
-# newgrid, bounds = AI.result(matrix, ("B", "s"))
-# matrix2 = Matrix(newgrid, [("B", "s")], matrix)
-# matrix2.set_bounds("B", bounds)
-# print(matrix2.pieces["B"])
-# print(matrix2)
-# newgrid, bounds = AI.result(matrix2, ("B", "w"))
-# matrix3 = Matrix(newgrid, [("B", "w")], matrix2)
-# matrix3.set_bounds("B", bounds)
-# print(matrix3.pieces["B"])
-# print(matrix3)
-
-# A DESLOCAÇÃO FUNCIONA
-#matrix = Matrix("03 ooBoooooBooCAABooCooooooooDDDooooooo 62")
-# print(matrix.pieces["D"])
-# print(matrix)
-# newgrid, bounds = AI.result(matrix, ("D", "d"))
-# matrix4 = Matrix(newgrid, [("D", "d")], matrix)
-# matrix4.set_bounds("D", bounds)
-# print(matrix4.pieces["D"])
-# print(matrix4)
-# newgrid, bounds = AI.result(matrix4, ("D", "a"))
-# matrix5 = Matrix(newgrid, [("D", "a")], matrix4)
-# matrix5.set_bounds("D", bounds)
-# print(matrix5.pieces["D"])
-# print(matrix5)
-
-# HÁ UM PROBLEMA EM ALGUMAS DESLOCAÇĨES
+matrix = Matrix("08 ooxCCCoHxooLoHJAALoIJEEEoIFFKooGGoKo 84")
 t = SearchTree(matrix, "breadth")
-print(t.search())
+t.search()
+
+# print(matrix.pieces["C"])
+# print(matrix)
+# newgrid, bounds = AI.result(matrix, ("C", "w"))
+# matrix2 = Matrix(newgrid, [("C", "w")], matrix)
+# matrix2.set_bounds("C", bounds)
+# print(matrix.pieces["C"])
+# print(matrix2.pieces["C"])
+# print(matrix2)
+# newgrid, bounds = AI.result(matrix2, ("C", "s"))
+# matrix3 = Matrix(newgrid, [("C", "s")], matrix2)
+# matrix3.set_bounds("C", bounds)
+# print(matrix.pieces["C"])
+# print(matrix2.pieces["C"])
+# print(matrix3.pieces["C"])
+# print(matrix3)
