@@ -14,6 +14,29 @@ from common import *
 from tree_search import *
 
 
+# for simplicity's sake let's assume the cursor will always select the piece from its maximum x and y coordinates.
+def moveCursor(cursor, piece):
+    cursorx, cursory = cursor
+    piecemin_x, piecemax_x, piecemin_y, piecemax_y = piece
+    path = ""
+    while (cursorx != piecemax_x and cursory != piecemax_y):
+        if cursorx > piecemax_x:
+            path += "a"
+            cursorx -= 1
+        elif cursorx < piecemax_x:
+            path += "d"
+            cursorx += 1
+        
+        if cursorx > piecemax_y:
+            path += "s"
+            cursory -= 1
+        elif cursorx < piecemax_y:
+            path += "w"
+            cursory += 1
+    path += " "
+    return path
+
+
 async def agent_loop(server_address="localhost:5500", agent_name="student"):
     """Example client loop."""
     async with websockets.connect(f"ws://{server_address}/player") as websocket:
@@ -28,20 +51,27 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                 )  # receive game update, this must be called timely or your game will get out of sync with the server
 
                 grid = state.get("grid")
-                
                 if previous_grid != grid:
                     print("calcula")
                     cursor = state.get("cursor")
+
                     selected = state.get("selected")
-                    m = SearchMap(grid)
+                    print(cursor)
+                    
+                    print("Selected: " + selected)
+                    m = Matrix(grid)
                     t = SearchTree(m, "breadth")
                     result = t.search()
                     print(result)
                     if result:
+                        commands = []
                         key = result.pop(0)
-
-                # await websocket.send(
-                #     json.dumps({"cmd": "key", "key": key})
+                        if selected != key[0]:
+                            key_bounds = m.pieces[key[0]]
+                            commands = list(moveCursor(cursor, key_bounds))
+                        commands += key[1]
+                print(commands)
+                await websocket.send(json.dumps({"cmd": "key", "key": commands.pop(0)}))
                 # )  # send key command to server - you must implement this send in the AI agent
 
             except websockets.exceptions.ConnectionClosedOK:
