@@ -39,6 +39,26 @@ async def moveCursor(cursor, piece_bounds, selected):
     return path, cursorx, cursory
 
 
+async def detectCrazy(grid, old_grid, selected, cursor, dimensions):
+    dimension = dimensions[0]
+    if old_grid == "":
+        return 0
+    
+    for i, char in enumerate(grid):
+        if (char !=  old_grid[i] and char != "o"):
+            if char != selected:
+                return 1
+            else:
+                cursor_x, cursor_y = cursor
+                if (grid[i%dimension + 1] == selected and cursor_x != i%dimension + 1): # this means it is horizontal
+                    print("shift while selected")
+                    return 1
+                
+                elif (grid[i // dimension + 1] == selected and cursor_y != i // dimension + 1): #this means it is vertical
+                    print("shift while selected")
+                    return 1
+    return 0
+    
 async def agent_loop(server_address="localhost:5500", agent_name="student"):
     """Example client loop."""
     async with websockets.connect(f"ws://{server_address}/player") as websocket:
@@ -51,18 +71,24 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         cou = 0
         commands = []
         solution = 0
-
+        old_grid = ""
+        crazy = 0
         while True:
             try:
                 state = json.loads(await websocket.recv())  # receive game update, this must be called timely or your game will get out of sync with the server
-
+                
                 grid = state.get("grid")
+                crazy = await detectCrazy(grid, old_grid, state.get("selected"), state.get("cursor"), state.get("dimensions"))
                 level = state.get("level")
-                if commands == []:
+                if (crazy):
+                    print("Crazy occured at level: " + str(level) + " !")
+                #break
+                if crazy or commands == []:
                     previous_grid = grid
                     if level != previous_level:
                         previous_level = level
                         cou = 0
+                        asyncio.sleep(1/1000)
                     print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
                     
@@ -73,6 +99,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     selected = state.get("selected")
                     cursor = state.get("cursor")
                     print("Solution: " + str(solution))
+                    print("Cursor Initial State: " + str(cursor))
                     while solution != []:
                         action = solution.pop(0)
                         piece = action[0]
@@ -99,7 +126,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                             m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(1, 1, 0, 0)))))
                         cursor = (cursor_x, cursor_y)
                         print("Fake Cursor: " + str(cursor))
-                    print("Cursor: " + str(state.get("cursor")))
+                    #print("Cursor: " + str(state.get("cursor")))
                     print("Comandos: " + str(commands))
                     
                     #print("Selected Piece: " + str(selected))
@@ -107,6 +134,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     c = commands.pop(0)
                     await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
                     print("Command sent '" + str(c) + "'")
+                old_grid = grid
             
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
