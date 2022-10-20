@@ -15,7 +15,7 @@ from tree_search import *
 
 
 # for simplicity's sake let's assume the cursor will always select the piece from its maximum x and y coordinates.
-async def moveCursor(cursor, piece_bounds, piece_char, selected):
+async def moveCursor(cursor, piece_bounds, selected):
     cursorx, cursory = cursor
     piecemin_x, piecemax_x, piecemin_y, piecemax_y = piece_bounds
     path = ""
@@ -36,7 +36,7 @@ async def moveCursor(cursor, piece_bounds, piece_char, selected):
             path += "s"
             cursory += 1
     path += " "
-    return path
+    return path, cursorx, cursory
 
 
 async def agent_loop(server_address="localhost:5500", agent_name="student"):
@@ -50,6 +50,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         previous_level = ""
         cou = 0
         commands = []
+        solution = 0
 
         while True:
             try:
@@ -57,37 +58,55 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
 
                 grid = state.get("grid")
                 level = state.get("level")
-                if previous_grid != grid:
+                if commands == []:
                     previous_grid = grid
                     if level != previous_level:
                         previous_level = level
                         cou = 0
                     print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
-                    cursor = state.get("cursor")
-
-                    selected = state.get("selected")
                     
                     m = Matrix(grid)
                     t = SearchTree(m, "breadth")
-                    result = await t.search()
+                    solution = t.search()
                     commands = []
-                    print("Solução encontrada: " + str(result))
-                    if result:
-                        key = result.pop(0)
-                        if selected != key[0]:
-                            print("Piece to be selected: " + str(key[0]) + " with coords: " + str(m.pieces[key[0]]))
-                            key_bounds = m.pieces[key[0]]
-                            commands += list(await moveCursor(cursor, key_bounds, key[0], selected))
-                        commands += key[1]
+                    selected = state.get("selected")
+                    cursor = state.get("cursor")
+                    print("Solution: " + str(solution))
+                    while solution != []:
+                        action = solution.pop(0)
+                        piece = action[0]
+                        piece_bounds = m.pieces[piece]
+                        command = action[1]
+                        if selected != piece:
+                            print("Piece to be selected: " + str(piece) + " with bounds: " + str(piece_bounds))
+                            cursor_moves, cursor_x, cursor_y = await moveCursor(cursor, piece_bounds, selected)
+                            print("Cursor Moves: " + str(cursor_moves))
+                            commands += list(cursor_moves)
+                            selected = piece
+                        commands += command
+                        if command == "w":
+                            cursor_y -= 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(0, 0, -1, -1)))))
+                        elif command == "s":
+                            cursor_y += 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(0, 0, 1, 1)))))
+                        elif command == "a":
+                            cursor_x -= 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(-1, -1, 0, 0)))))
+                        elif command == "d":
+                            cursor_x += 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(1, 1, 0, 0)))))
+                        cursor = (cursor_x, cursor_y)
+                        print("Fake Cursor: " + str(cursor))
+                    print("Cursor: " + str(state.get("cursor")))
                     print("Comandos: " + str(commands))
-                    print("Cursor: " + str(cursor))
-                    print("Selected Piece: " + str(selected))
-                     
-                if commands != []:     
-                    command = commands.pop(0)
-                    print("Next command to send '" + str(command) + "'")
-                    await websocket.send(json.dumps({"cmd": "key", "key": command})) # send key command to server - you must implement this send in the AI agent
+                    
+                    #print("Selected Piece: " + str(selected))
+                else: 
+                    c = commands.pop(0)
+                    await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
+                    print("Command sent '" + str(c) + "'")
             
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
