@@ -1,3 +1,11 @@
+"""
+Authors:
+Rafael Gonçalves (102534)
+André Butuc (103530)
+"""
+
+from time import time
+
 class Matrix:
     def __init__(self, grid, action=[], parent=None):
         if " " in grid:
@@ -8,13 +16,11 @@ class Matrix:
         self.parent = parent
         self.children = []
         if parent is not None:
-            #self.depth = parent.depth + 1
             self.pieces = parent.pieces.copy() #copy by value
             self.horizontal_pieces = parent.horizontal_pieces #copy by reference
             self.vertical_pieces = parent.vertical_pieces #copy by reference
             self.path = parent.path + action
             return
-        #self.depth = 0
         self.pieces = {}
         self.horizontal_pieces = []
         self.vertical_pieces = []
@@ -48,13 +54,6 @@ class Matrix:
     def is_vertical(self, piece: str) -> bool:
         return piece in self.vertical_pieces
 
-    # def in_parent(self, grid):
-    #     if self.parent == None:
-    #         return False
-    #     if self.parent.grid == grid:
-    #         return True
-    #     return self.parent.in_parent(grid) 
-
     def __repr__(self) -> str:
         output = ""
         for y in range(self.n):
@@ -70,16 +69,6 @@ class AI:
 
     def replace_char(s, index, newchar):
         return s[:index] + newchar + s[index+1:]
-
-    def is_duplicated(root: Matrix, grid):
-        if len(root.children) == 0:
-            return False
-        for child in root.children:
-            if child.grid == grid:
-                return True
-            if AI.is_duplicated(child, grid):
-                return True
-        return False
 
     def actions(state: Matrix):
         actions = []
@@ -131,31 +120,26 @@ class AI:
 
 class SearchTree:
     def __init__(self, root: Matrix, strategy='breadth'):
-        #print(root)
         self.root = root
         self.open_nodes = [root]
+        self.grids_visited = [root.grid]
         self.strategy = strategy
         self.solution = None
 
-    def search(self):#, limit=1000):
+    def search(self):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
             if AI.goal_test(node):
                 self.solution = node
-                #print("SOLUÇÃO")
-                #print(node)
-                #print(node.path)
                 return node.path
             lnewnodes = []
-            # if node.depth == limit:
-            #     continue
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
-                if not AI.is_duplicated(self.root, newgrid):
-                    #(minx, maxx, miny, maxy) = bounds
+                if newgrid not in self.grids_visited:
                     newnode = Matrix(newgrid, [a], node)
                     newnode.set_bounds(a[0], bounds)
                     lnewnodes.append(newnode)
+                    self.grids_visited.append(newgrid)
             node.children = lnewnodes
             self.add_to_open(lnewnodes)
         return None
@@ -166,14 +150,15 @@ class SearchTree:
         elif self.strategy == 'depth':
             self.open_nodes[:0] = lnewnodes
 
-
 def main():
     with open("levels.txt", "r") as f:
         for i in range(1, 57):
-            print(i)
+            print(f"Nível {i}: ", end = "")
+            start = time()
             matrix = Matrix(f.readline().strip())
-            t = SearchTree(matrix, "depth")
+            t = SearchTree(matrix, "breadth")
             t.search()
+            print("{:4f} segundos".format(time() - start))
 
 if __name__ == "__main__":
     main()

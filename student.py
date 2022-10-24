@@ -80,7 +80,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                 grid = state.get("grid")
                 crazy = await detectCrazy(grid, old_grid, state.get("selected"), state.get("cursor"), state.get("dimensions"))
                 level = state.get("level")
-                if (crazy):
+                if crazy:
                     print("Crazy occured at level: " + str(level) + " !")
                 #break
                 if crazy or commands == []:
