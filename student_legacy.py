@@ -94,8 +94,8 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     
                     m = Matrix(grid)
                     t = SearchTree(m, "breadth")
-                    #await asyncio.sleep(0)
                     solution = t.search()
+                    await asyncio.sleep(0)
                     commands = []
                     selected = state.get("selected")
                     cursor = state.get("cursor")
