@@ -48,6 +48,16 @@ class Matrix:
     def set_bounds(self, piece: str, bounds: tuple):
         self.pieces[piece] = bounds
 
+    def set_specific_bound(self, piece: str, bound: str, value: str):
+        if bound == "minx":
+            self.pieces[piece][0] = value
+        elif bound == "maxx":
+            self.pieces[piece][1] = value
+        elif bound == "miny":
+            self.pieces[piece][2] = value
+        elif bound == "maxy":
+            self.pieces[piece][3] = value
+
     def is_horizontal(self, piece: str) -> bool:
         return piece in self.horizontal_pieces
 
@@ -157,8 +167,8 @@ def main():
             start = time()
             matrix = Matrix(f.readline().strip())
             t = SearchTree(matrix, "breadth")
-            t.search()
-            print("{:4f} segundos".format(time() - start))
+            result = t.search()
+            print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
 
 if __name__ == "__main__":
     main()

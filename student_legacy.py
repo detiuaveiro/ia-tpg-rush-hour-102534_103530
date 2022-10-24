@@ -14,60 +14,129 @@ from common import *
 from tree_search import *
 
 
+# for simplicity's sake let's assume the cursor will always select the piece from its maximum x and y coordinates.
+async def moveCursor(cursor, piece_bounds, selected):
+    cursorx, cursory = cursor
+    piecemin_x, piecemax_x, piecemin_y, piecemax_y = piece_bounds
+    path = ""
+    if selected != "":
+        path += " "
+    while (cursorx != piecemax_x or cursory != piecemax_y):
+        if cursorx > piecemax_x:
+            path += "a"
+            cursorx -= 1
+        elif cursorx < piecemax_x:
+            path += "d"
+            cursorx += 1
+        
+        if cursory > piecemax_y:
+            path += "w"
+            cursory -= 1
+        elif cursory < piecemax_y:
+            path += "s"
+            cursory += 1
+    path += " "
+    return path, cursorx, cursory
+
+
+async def detectCrazy(grid, old_grid, selected, cursor, dimensions):
+    dimension = dimensions[0]
+    if old_grid == "":
+        return 0
+    
+    for i, char in enumerate(grid):
+        if (char !=  old_grid[i] and char != "o"):
+            if char != selected:
+                return 1
+            else:
+                cursor_x, cursor_y = cursor
+                if (grid[i%dimension + 1] == selected and cursor_x != i%dimension + 1): # this means it is horizontal
+                    print("shift while selected")
+                    return 1
+                
+                elif (grid[i // dimension + 1] == selected and cursor_y != i // dimension + 1): #this means it is vertical
+                    print("shift while selected")
+                    return 1
+    return 0
+    
 async def agent_loop(server_address="localhost:5500", agent_name="student"):
     """Example client loop."""
     async with websockets.connect(f"ws://{server_address}/player") as websocket:
 
         # Receive information about static game properties
         await websocket.send(json.dumps({"cmd": "join", "name": agent_name}))
+
         previous_grid = ""
-        previous_key = ""
+        previous_level = ""
+        cou = 0
+        commands = []
+        solution = 0
+        old_grid = ""
+        crazy = 0
         while True:
             try:
-                state = json.loads(
-                    await websocket.recv()
-                )  # receive game update, this must be called timely or your game will get out of sync with the server
-
-                #pprint(state)
-                cursor = state.get("cursor")
-                grid = state.get("grid")
+                state = json.loads(await websocket.recv())  # receive game update, this must be called timely or your game will get out of sync with the server
                 
-                if previous_key == " ":
+                grid = state.get("grid")
+                crazy = await detectCrazy(grid, old_grid, state.get("selected"), state.get("cursor"), state.get("dimensions"))
+                level = state.get("level")
+                if crazy:
+                    print("Crazy occured at level: " + str(level) + " !")
+                #break
+                if crazy or commands == []:
+                    previous_grid = grid
+                    if level != previous_level:
+                        previous_level = level
+                        cou = 0
+                        asyncio.sleep(1/1000)
+                    print("re-calcula " + str(cou) + " " + str(state.get("level")))
+                    cou += 1
+                    
+                    m = Matrix(grid)
+                    t = SearchTree(m, "breadth")
+                    #await asyncio.sleep(0)
+                    solution = t.search()
+                    commands = []
                     selected = state.get("selected")
-                    print("Selected:", selected)
-                    coords = m.piece_coordinates(selected)[-1]
-                    print("Selected coords:", coords)
-                    grid = grid.split(" ")[1]
-                    i = coords.y * m.grid_size + coords.x + 1
-                    limit = (coords.y + 1) * m.grid_size
-                    line = grid[i:limit]
-                    if line == "o" * len(line):
-                        print("sim")
-                        result = ["d"] * len(line)
-                    key = "S"
-                else:
-                    if previous_key == "S":
-                        key = ""
-                        if result:
-                            key = result.pop(0)
-                            print(key)
-                    elif previous_grid != grid:
-                        print("calcula")
-                        m = Map(grid)
-                        coords = m.piece_coordinates("A")
-                        p = SearchProblem(SearchDomain(m), cursor, coords)
-                        t = SearchTree(p, "breadth")
-                        result = t.search()
-                        key = " "
-                        if result:
-                            key = result.pop(0)
-                        print(key)
-
-                previous_key = key
-                await websocket.send(
-                    json.dumps({"cmd": "key", "key": key})
-                )  # send key command to server - you must implement this send in the AI agent
-
+                    cursor = state.get("cursor")
+                    print("Solution: " + str(solution))
+                    print("Cursor Initial State: " + str(cursor))
+                    while solution != []:
+                        action = solution.pop(0)
+                        piece = action[0]
+                        piece_bounds = m.pieces[piece]
+                        command = action[1]
+                        if selected != piece:
+                            print("Piece to be selected: " + str(piece) + " with bounds: " + str(piece_bounds))
+                            cursor_moves, cursor_x, cursor_y = await moveCursor(cursor, piece_bounds, selected)
+                            print("Cursor Moves: " + str(cursor_moves))
+                            commands += list(cursor_moves)
+                            selected = piece
+                        commands += command
+                        if command == "w":
+                            cursor_y -= 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(0, 0, -1, -1)))))
+                        elif command == "s":
+                            cursor_y += 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(0, 0, 1, 1)))))
+                        elif command == "a":
+                            cursor_x -= 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(-1, -1, 0, 0)))))
+                        elif command == "d":
+                            cursor_x += 1
+                            m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(1, 1, 0, 0)))))
+                        cursor = (cursor_x, cursor_y)
+                        print("Fake Cursor: " + str(cursor))
+                    #print("Cursor: " + str(state.get("cursor")))
+                    print("Comandos: " + str(commands))
+                    
+                    #print("Selected Piece: " + str(selected))
+                else: 
+                    c = commands.pop(0)
+                    await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
+                    print("Command sent '" + str(c) + "'")
+                old_grid = grid
+            
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
                 return
