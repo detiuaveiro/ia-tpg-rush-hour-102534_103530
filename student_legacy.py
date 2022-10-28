@@ -88,14 +88,12 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     if level != previous_level:
                         previous_level = level
                         cou = 0
-                        asyncio.sleep(1/1000)
                     print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
                     
                     m = Matrix(grid)
                     t = SearchTree(m, "breadth")
                     solution = t.search()
-                    await asyncio.sleep(0)
                     commands = []
                     selected = state.get("selected")
                     cursor = state.get("cursor")

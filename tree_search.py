@@ -15,6 +15,7 @@ class Matrix:
         self.n = int(len(grid)**(1/2))
         self.parent = parent
         self.children = []
+        # Flyweight pattern
         if parent is not None:
             self.pieces = parent.pieces.copy() #copy by value
             self.horizontal_pieces = parent.horizontal_pieces #copy by reference
@@ -42,13 +43,13 @@ class Matrix:
                                 continue    
                         self.vertical_pieces.append(char)
 
-    def get(self, x: int, y: int) -> str:
+    def get(self, x, y):
         return self.grid[y*self.n+x]
 
-    def set_bounds(self, piece: str, bounds: tuple):
+    def set_bounds(self, piece, bounds):
         self.pieces[piece] = bounds
 
-    def set_specific_bound(self, piece: str, bound: str, value: str):
+    def set_specific_bound(self, piece, bound, value):
         if bound == "minx":
             self.pieces[piece][0] = value
         elif bound == "maxx":
@@ -58,13 +59,13 @@ class Matrix:
         elif bound == "maxy":
             self.pieces[piece][3] = value
 
-    def is_horizontal(self, piece: str) -> bool:
+    def is_horizontal(self, piece):
         return piece in self.horizontal_pieces
 
-    def is_vertical(self, piece: str) -> bool:
+    def is_vertical(self, piece):
         return piece in self.vertical_pieces
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         output = ""
         for y in range(self.n):
             for x in range(self.n):
@@ -132,7 +133,7 @@ class SearchTree:
     def __init__(self, root: Matrix, strategy='breadth'):
         self.root = root
         self.open_nodes = [root]
-        self.grids_visited = [root.grid]
+        self.grids_visited = {root.grid}
         self.strategy = strategy
         self.solution = None
 
@@ -149,26 +150,29 @@ class SearchTree:
                     newnode = Matrix(newgrid, [a], node)
                     newnode.set_bounds(a[0], bounds)
                     lnewnodes.append(newnode)
-                    self.grids_visited.append(newgrid)
+                    self.grids_visited.add(newgrid)
             node.children = lnewnodes
             self.add_to_open(lnewnodes)
         return None
 
-    def add_to_open(self,lnewnodes):
+    def add_to_open(self, lnewnodes):
         if self.strategy == 'breadth':
             self.open_nodes.extend(lnewnodes)
         elif self.strategy == 'depth':
             self.open_nodes[:0] = lnewnodes
 
 def main():
-    with open("levels.txt", "r") as f:
+    with open("levels copy.txt", "r") as f:
+        levels = f.readlines()
+        total_time = 0.0
         for i in range(1, 57):
-            print(f"Nível {i}: ", end = "")
-            start = time()
-            matrix = Matrix(f.readline().strip())
+            matrix = Matrix(levels[i])
             t = SearchTree(matrix, "breadth")
+            start = time()
             result = t.search()
-            print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
+            total_time += time() - start
+            #print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
+        print("{:4f} segundos".format(total_time))
 
 if __name__ == "__main__":
     main()
