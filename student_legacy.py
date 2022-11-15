@@ -128,10 +128,10 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                         #print("Fake Cursor: " + str(cursor))
                     search_time = time() - start
                     print("Time taken to reach solution and commands: " + str(search_time))
-                    if search_time >= 0.01:
+                    if search_time >= 0.1:
                         print("De-sync")
-                        print("N Fake commands: " + str(int(search_time // 0.01)))
-                        for i in range(int(search_time // 0.01)):
+                        print("N Fake commands: " + str(int(search_time // 0.1)))
+                        for i in range(int(search_time // 0.1)):
                             commands.insert(0, '')
                     #print("Cursor: " + str(state.get("cursor")))
                     print("Comandos: " + str(commands))
