@@ -88,26 +88,27 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     if level != previous_level:
                         previous_level = level
                         cou = 0
-                    print("re-calcula " + str(cou) + " " + str(state.get("level")))
+                    #print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
                     
                     m = Matrix(grid)
                     t = SearchTree(m, "breadth")
+                    start = time()
                     solution = t.search()
                     commands = []
                     selected = state.get("selected")
                     cursor = state.get("cursor")
-                    print("Solution: " + str(solution))
-                    print("Cursor Initial State: " + str(cursor))
+                    #print("Solution: " + str(solution))
+                    #print("Cursor Initial State: " + str(cursor))
                     while solution != []:
                         action = solution.pop(0)
                         piece = action[0]
                         piece_bounds = m.pieces[piece]
                         command = action[1]
                         if selected != piece:
-                            print("Piece to be selected: " + str(piece) + " with bounds: " + str(piece_bounds))
+                            #print("Piece to be selected: " + str(piece) + " with bounds: " + str(piece_bounds))
                             cursor_moves, cursor_x, cursor_y = await moveCursor(cursor, piece_bounds, selected)
-                            print("Cursor Moves: " + str(cursor_moves))
+                            #print("Cursor Moves: " + str(cursor_moves))
                             commands += list(cursor_moves)
                             selected = piece
                         commands += command
@@ -124,15 +125,23 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                             cursor_x += 1
                             m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(1, 1, 0, 0)))))
                         cursor = (cursor_x, cursor_y)
-                        print("Fake Cursor: " + str(cursor))
+                        #print("Fake Cursor: " + str(cursor))
+                    search_time = time() - start
+                    print("Time taken to reach solution and commands: " + str(search_time))
+                    if search_time >= 0.01:
+                        print("De-sync")
+                        print("N Fake commands: " + str(int(search_time // 0.01)))
+                        for i in range(int(search_time // 0.01)):
+                            commands.insert(0, '')
                     #print("Cursor: " + str(state.get("cursor")))
                     print("Comandos: " + str(commands))
+
                     
                     #print("Selected Piece: " + str(selected))
                 else: 
                     c = commands.pop(0)
                     await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
-                    print("Command sent '" + str(c) + "'")
+                    #print("Command sent '" + str(c) + "'")
                 old_grid = grid
             
             except websockets.exceptions.ConnectionClosedOK:
