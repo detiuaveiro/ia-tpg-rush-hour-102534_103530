@@ -163,7 +163,7 @@ def main():
     with open("levels.txt", "r") as f:
         levels = f.readlines()
         total_time = 0.0
-        for i in range(1, 57):
+        for i in range(57):
             matrix = Matrix(levels[i])
             t = SearchTree(matrix, "breadth")
             start = time()
