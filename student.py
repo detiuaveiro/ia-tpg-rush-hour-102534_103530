@@ -155,7 +155,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
 loop = asyncio.get_event_loop()
 SERVER = os.environ.get("SERVER", "localhost")
 PORT = os.environ.get("PORT", "8000")
-NAME = os.environ.get("NAME", "2022-11-17T20:05:19")
+NAME = os.environ.get("NAME", getpass.getuser())
 loop.run_until_complete(agent_loop(f"{SERVER}:{PORT}", NAME))
 
 # def grid2dict(grid, cursor):
