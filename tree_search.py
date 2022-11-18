@@ -14,7 +14,6 @@ class Matrix:
             self.grid = grid
         self.n = int(len(grid)**(1/2))
         self.parent = parent
-        self.children = []
         # Flyweight pattern
         if parent is not None:
             self.pieces = parent.pieces.copy() #copy by value
@@ -151,7 +150,6 @@ class SearchTree:
                     newnode.set_bounds(a[0], bounds)
                     lnewnodes.append(newnode)
                     self.grids_visited.add(newgrid)
-            node.children = lnewnodes
             self.add_to_open(lnewnodes)
         return None
 
@@ -162,7 +160,7 @@ class SearchTree:
             self.open_nodes[:0] = lnewnodes
 
 def main():
-    with open("levels copy.txt", "r") as f:
+    with open("levels.txt", "r") as f:
         levels = f.readlines()
         total_time = 0.0
         for i in range(1, 57):
