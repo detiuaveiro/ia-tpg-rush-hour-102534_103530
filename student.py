@@ -91,13 +91,13 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     #print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
                     
-                    m = Matrix(grid)
+                    cursor = state.get("cursor")
+                    m = Matrix(grid, cursor)
                     t = SearchTree(m, "breadth")
                     start = time()
                     solution = t.search()
                     commands = []
                     selected = state.get("selected")
-                    cursor = state.get("cursor")
                     #print("Solution: " + str(solution))
                     #print("Cursor Initial State: " + str(cursor))
                     while solution != []:
