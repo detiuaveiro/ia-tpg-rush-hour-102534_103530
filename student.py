@@ -72,6 +72,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         commands = []
         solution = 0
         old_grid = ""
+        old_search_time = 0
         crazy = 0
         while True:
             try:
@@ -83,7 +84,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                 if crazy:
                     print("Crazy occured at level: " + str(level) + " !")
                 #break
-                if crazy or commands == []:
+                if (crazy and old_search_time < 1) or commands == []:
                     previous_grid = grid
                     if level != previous_level:
                         previous_level = level
@@ -91,13 +92,13 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     #print("re-calcula " + str(cou) + " " + str(state.get("level")))
                     cou += 1
                     
-                    cursor = state.get("cursor")
-                    m = Matrix(grid, cursor)
+                    m = Matrix(grid)
                     t = SearchTree(m, "breadth")
                     start = time()
                     solution = t.search()
                     commands = []
                     selected = state.get("selected")
+                    cursor = state.get("cursor")
                     #print("Solution: " + str(solution))
                     #print("Cursor Initial State: " + str(cursor))
                     while solution != []:
@@ -140,9 +141,11 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     #print("Selected Piece: " + str(selected))
                 else: 
                     c = commands.pop(0)
+                    old_search_time -= 0.1
                     await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
                     #print("Command sent '" + str(c) + "'")
                 old_grid = grid
+                old_search_time = search_time
             
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
