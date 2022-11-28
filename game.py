@@ -176,3 +176,5 @@ class Game:
         self._lastkeypress = "-"
 
         return self.info()
+
+        return self.info()

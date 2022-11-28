@@ -1,4 +1,5 @@
-# ia-tetris
+# ia-rush
+
 Projecto de Inteligência Artificial 2022 - Rush Hour
 
 ## How to install
@@ -7,7 +8,7 @@ Make sure you are running Python 3.7 or higher
 
 `$ pip install -r requirements.txt`
 
-*Tip: you might want to create a virtualenv first*
+_Tip: you might want to create a virtualenv first_
 
 ## How to play
 
@@ -32,4 +33,9 @@ Make sure pygame is properly installed:
 python -m pygame.examples.aliens
 
 # Tested on:
+
+- OSX Monterey 12.5.1
+
+# Tested on:
+
 - OSX Monterey 12.5.1

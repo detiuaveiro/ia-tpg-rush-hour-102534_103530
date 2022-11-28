@@ -50,7 +50,6 @@ class GameServer:
         if os.path.isfile(HIGHSCORE_FILE):
             with open(HIGHSCORE_FILE, "r") as infile:
                 self._highscores = json.load(infile)
-                print(self._highscores)
 
     def save_highscores(self, score: int):
         """Update highscores, storing to file."""
@@ -69,7 +68,6 @@ class GameServer:
             :MAX_HIGHSCORES
         ]
 
-        print(self._highscores)
 
         with open(HIGHSCORE_FILE, "w") as outfile:
             json.dump(self._highscores, outfile)
@@ -107,9 +105,6 @@ class GameServer:
                     if path == "/viewer":
                         logger.info("Viewer connected")
                         self.viewers.add(websocket)
-
-                    game_info = self.game.info()
-                    await websocket.send(json.dumps(game_info))
 
                 if (
                     data["cmd"] == "key"
@@ -194,12 +189,12 @@ class GameServer:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--bind", help="IP address to bind to", default="")
-    parser.add_argument("--port", help="TCP port", type=int, default=5500)
+    parser.add_argument("--port", help="TCP port", type=int, default=8000)
     parser.add_argument("--seed", help="Seed number", type=int, default=0)
     parser.add_argument(
         "--grading-server",
         help="url of grading server",
-        default=None,  # "http://atnog-tetriscores.av.it.pt/game",
+        default="http://atnog-tetriscores.av.it.pt/game",
     )
     args = parser.parse_args()
 
