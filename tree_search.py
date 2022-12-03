@@ -7,13 +7,15 @@ André Butuc (103530)
 from time import time
 
 class Matrix:
-    def __init__(self, grid, action=[], parent=None):
+    def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0):
         if " " in grid:
             self.grid = grid.split(" ")[1]
         else:
             self.grid = grid
         self.n = int(len(grid)**(1/2))
         self.parent = parent
+        self.cost = cost
+        self.heuristic = heuristic
         # Flyweight pattern
         if parent is not None:
             self.pieces = parent.pieces.copy() #copy by value
@@ -80,6 +82,14 @@ class AI:
     def replace_char(s, index, newchar):
         return s[:index] + newchar + s[index+1:]
 
+    def cost(state: Matrix, action):
+        return 1
+
+    def heuristic(state: Matrix):
+        minx, maxx, miny, maxy = state.pieces["A"]
+        # nº de peças no caminho
+        return sum(1 for x in range(maxx+1, state.n) if state.get(x, miny) != "o")
+
     def actions(state: Matrix):
         actions = []
         for char, bounds in state.pieces.items():
@@ -133,6 +143,7 @@ class SearchTree:
         self.root = root
         self.open_nodes = [root]
         self.grids_visited = {root.grid}
+        self.total_costs = {root.grid: 0}
         self.strategy = strategy
         self.solution = None
 
@@ -153,24 +164,72 @@ class SearchTree:
             self.add_to_open(lnewnodes)
         return None
 
+    def search2(self):
+        while self.open_nodes != []:
+            node = self.open_nodes.pop(0)
+            if AI.goal_test(node):
+                self.solution = node
+                return node.path
+            lnewnodes = []
+            for a in AI.actions(node):
+                newgrid, bounds = AI.result(node, a)
+                new_cost = node.cost + AI.cost(node, a)
+                new_heuristic = AI.heuristic(node)
+                newf = new_cost + new_heuristic
+                if newgrid in self.grids_visited:
+                    if newf >= self.total_costs[newgrid]:
+                        continue
+                    newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic)
+                    newnode.set_bounds(a[0], bounds)
+                    self.total_costs[newgrid] = newf
+                    lnewnodes.append(newnode)
+                else:
+                    newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic)
+                    newnode.set_bounds(a[0], bounds)
+                    lnewnodes.append(newnode)
+                    self.total_costs[newgrid] = newf
+                    self.grids_visited.add(newgrid)
+            self.add_to_open(lnewnodes)
+        return None
+
     def add_to_open(self, lnewnodes):
         if self.strategy == 'breadth':
             self.open_nodes.extend(lnewnodes)
         elif self.strategy == 'depth':
             self.open_nodes[:0] = lnewnodes
+        elif self.strategy == 'a*':
+            self.open_nodes.extend(lnewnodes)
+            self.open_nodes.sort(key=lambda x: x.cost + AI.heuristic(x))
 
 def main():
-    with open("levels.txt", "r") as f:
-        levels = f.readlines()
-        total_time = 0.0
-        for i in range(57):
-            matrix = Matrix(levels[i])
-            t = SearchTree(matrix, "breadth")
-            start = time()
-            result = t.search()
-            total_time += time() - start
-            #print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
-        print("{:4f} segundos".format(total_time))
+    if True: # alternar entre breadth e a*
+        with open("levels2.txt", "r") as f:
+            levels = f.readlines()
+            total_time = 0.0
+            total_moves = 0
+            for level in levels:
+                matrix = Matrix(level)
+                t = SearchTree(matrix, "breadth")
+                start = time()
+                result = t.search()
+                total_time += time() - start
+                total_moves += len(result)
+                # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
+            print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
+    else:
+        with open("levels2.txt", "r") as f:
+            levels = f.readlines()
+            total_time = 0.0
+            total_moves = 0
+            for level in levels:
+                matrix = Matrix(level)
+                t = SearchTree(matrix, "a*")
+                start = time()
+                result = t.search2()
+                total_time += time() - start
+                total_moves += len(result)
+                # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
+            print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
 
 if __name__ == "__main__":
     main()
