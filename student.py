@@ -16,7 +16,7 @@ from auxiliary_functions import moveCursor, detectStuck, detectCrazy
             
     
 async def agent_loop(server_address="localhost:5500", agent_name="student"):
-    """Example client loop."""
+    """Rush Hour """
     async with websockets.connect(f"ws://{server_address}/player") as websocket:
 
         # Receive information about static game properties
@@ -56,9 +56,17 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     cou += 1
                     
                     m = Matrix(grid)
-                    t = SearchTree(m, "breadth")
+                    if m.n > 6:                      
+                        t = SearchTree(m, "gulosa")
+                    else:
+                        t = SearchTree(m, "breadth")
+                    
                     start = time()
-                    solution = t.search()
+                    if m.n > 6:
+                        solution = t.search2()
+                    else:
+                        solution = t.search()
+                    
                     commands = []
                     selected = state.get("selected")
                     cursor = state.get("cursor")

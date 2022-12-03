@@ -194,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--grading-server",
         help="url of grading server",
-        default="http://atnog-tetriscores.av.it.pt/game",
+        default=None #"http://atnog-tetriscores.av.it.pt/game",
     )
     args = parser.parse_args()
 

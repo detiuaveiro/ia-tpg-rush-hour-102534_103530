@@ -200,9 +200,12 @@ class SearchTree:
         elif self.strategy == 'a*':
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.cost + AI.heuristic(x))
+        elif self.strategy == "gulosa":
+            self.open_nodes.extend(lnewnodes)
+            self.open_nodes.sort(key=lambda x: x.heuristic)
 
 def main():
-    if True: # alternar entre breadth e a*
+    if False: # alternar entre breadth e a*
         with open("levels2.txt", "r") as f:
             levels = f.readlines()
             total_time = 0.0
@@ -217,18 +220,18 @@ def main():
                 # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
             print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
     else:
-        with open("levels2.txt", "r") as f:
+        with open("levels.txt", "r") as f:
             levels = f.readlines()
             total_time = 0.0
             total_moves = 0
             for level in levels:
                 matrix = Matrix(level)
-                t = SearchTree(matrix, "a*")
+                t = SearchTree(matrix, "gulosa")
                 start = time()
                 result = t.search2()
                 total_time += time() - start
                 total_moves += len(result)
-                # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
+                print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
             print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
 
 if __name__ == "__main__":
