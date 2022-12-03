@@ -22,38 +22,31 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         # Receive information about static game properties
         await websocket.send(json.dumps({"cmd": "join", "name": agent_name}))
 
-        previous_level = ""
-        cou = 0
-        commands = []
-        solution = 0
-        old_grid = ""
-        last_command = ""
-        old_search_time = 0
-        crazy = 0
-        stuck = 0
+        commands = [] # list to store commands to send to game engine
+        solution = 0  # init solution variable
+        old_grid = ""  # used to be able to constantly sensor changes between states
+        last_command = ""   # used to detect 
+        old_search_time = 0 # init old_search_time variable
+        crazy = 0   # init crazy variable
+        stuck = 0   # init stuck variable
+
         while True:
             try:
                 state = json.loads(await websocket.recv())  # receive game update, this must be called timely or your game will get out of sync with the server
                 
                 grid = state.get("grid")
                 selected = state.get("selected")
-                crazy = detectCrazy(grid, old_grid, selected, state.get("cursor"), state.get("dimensions"), last_command)
+                speed = state.get("game_speed")
+                selected = state.get("selected")
+                dimensions = state.get("dimensions")
+                cursor = state.get("cursor")
+                rate = 1/speed
+                crazy = detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command)
                 stuck = detectStuck(last_command, grid, old_grid, selected)
 
-                level = state.get("level")
-                if crazy:
-                    print("Crazy occured at level: " + str(level) + " !")
-                if stuck:
-                    print("Agent is stuck.")
 
                 if stuck or (crazy and old_search_time < 1) or commands == []:
                     last_command = ""
-                    previous_grid = grid
-                    if level != previous_level:
-                        previous_level = level
-                        cou = 0
-                    #print("re-calcula " + str(cou) + " " + str(state.get("level")))
-                    cou += 1
                     
                     m = Matrix(grid)
                     if m.n > 6:                      
@@ -68,19 +61,14 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                         solution = t.search()
                     
                     commands = []
-                    selected = state.get("selected")
-                    cursor = state.get("cursor")
-                    #print("Solution: " + str(solution))
-                    #print("Cursor Initial State: " + str(cursor))
+    
                     while solution != []:
                         action = solution.pop(0)
                         piece = action[0]
                         piece_bounds = m.pieces[piece]
                         command = action[1]
                         if selected != piece:
-                            #print("Piece to be selected: " + str(piece) + " with bounds: " + str(piece_bounds))
                             cursor_moves, cursor_x, cursor_y = moveCursor(cursor, piece_bounds, selected)
-                            #print("Cursor Moves: " + str(cursor_moves))
                             commands += list(cursor_moves)
                             selected = piece
                         commands += command
@@ -97,28 +85,21 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                             cursor_x += 1
                             m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(1, 1, 0, 0)))))
                         cursor = (cursor_x, cursor_y)
-                        #print("Fake Cursor: " + str(cursor))
-                    search_time = time() - start
-                    print("Time taken to reach solution and commands: " + str(search_time))
-                    if search_time >= 0.1:
-                        print("De-sync")
-                        print("N Fake commands: " + str(int(search_time // 0.1)))
-                        for i in range(int(search_time // 0.1)):
-                            commands.insert(0, '')
-                    #print("Cursor: " + str(state.get("cursor")))
-                    print("Comandos: " + str(commands))
-
                     
-                    #print("Selected Piece: " + str(selected))
+                    search_time = time() - start
+
+                    if search_time >= rate:
+                        for i in range(int(search_time // rate)):
+                            commands.insert(0, '')
+
                 else: 
                     c = commands.pop(0)
                     last_command = c
-                    old_search_time -= 0.1
+                    old_search_time -= rate
                     await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
-                    #print("Command sent '" + str(c) + "'")
+
                 old_grid = grid
                 old_search_time = search_time
-                #print("Last command:" + str(last_command))
             
             except websockets.exceptions.ConnectionClosedOK:
                 print("Server has cleanly disconnected us")
