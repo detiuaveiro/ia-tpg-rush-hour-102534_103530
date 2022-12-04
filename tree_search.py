@@ -86,8 +86,7 @@ class AI:
         return 1
 
     def heuristic(state: Matrix):
-        minx, maxx, miny, maxy = state.pieces["A"]
-        # nº de peças no caminho
+        _, maxx, miny, _ = state.pieces["A"]
         return sum(1 for x in range(maxx+1, state.n) if state.get(x, miny) != "o")
 
     def actions(state: Matrix):
@@ -200,7 +199,7 @@ class SearchTree:
         elif self.strategy == 'a*':
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.cost + AI.heuristic(x))
-        elif self.strategy == "gulosa":
+        elif self.strategy == 'greedy':
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.heuristic)
 
@@ -220,13 +219,13 @@ def main():
                 # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
             print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
     else:
-        with open("levels.txt", "r") as f:
+        with open("levels2.txt", "r") as f:
             levels = f.readlines()
             total_time = 0.0
             total_moves = 0
             for level in levels:
                 matrix = Matrix(level)
-                t = SearchTree(matrix, "gulosa")
+                t = SearchTree(matrix, "greedy")
                 start = time()
                 result = t.search2()
                 total_time += time() - start
