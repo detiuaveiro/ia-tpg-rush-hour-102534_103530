@@ -3,7 +3,7 @@ from common import *
 """ Auxiliary functions for Rush Hour Agent"""
 
 
-def moveCursor(cursor, piece_bounds, selected):
+def moveCursor(cursor, piece_bounds, selected=None):
     """
     moveCursor simulates the cursor behavior of grabbing the intended piece from its closest bound.
 
@@ -34,7 +34,7 @@ def moveCursor(cursor, piece_bounds, selected):
     path = ""
 
     # if a car is selected, we must release it before moving the cursor
-    if selected != "":
+    if selected is not None and selected != "":
         path += " "
 
     # while cursor doesn't reach closest piece bound
