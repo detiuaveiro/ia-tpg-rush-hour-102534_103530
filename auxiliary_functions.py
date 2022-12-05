@@ -5,7 +5,7 @@ from common import *
 
 def moveCursor(cursor, piece_bounds, selected):
     """
-    moveCursor simulates the cursor behavior of grabbing the the intended piece from its closest bound.
+    moveCursor simulates the cursor behavior of grabbing the intended piece from its closest bound.
 
     moveCursor receives as parameters: 
         - cursor - tuple of cursor coordinates

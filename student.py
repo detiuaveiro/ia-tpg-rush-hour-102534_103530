@@ -37,10 +37,10 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                 grid = state.get("grid")
                 selected = state.get("selected")
                 speed = state.get("game_speed")
-                selected = state.get("selected")
                 dimensions = state.get("dimensions")
                 cursor = state.get("cursor")
                 rate = 1/speed
+                
                 crazy = detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command)
                 stuck = detectStuck(last_command, grid, old_grid, selected)
 
