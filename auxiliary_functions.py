@@ -34,7 +34,7 @@ def moveCursor(cursor, piece_bounds, selected=None):
     path = ""
 
     # if a car is selected, we must release it before moving the cursor
-    if selected is not None and selected!= "":
+    if selected is not None and selected != "":
         path += " "
 
     # while cursor doesn't reach closest piece bound
