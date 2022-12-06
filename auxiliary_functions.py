@@ -3,7 +3,7 @@ from common import *
 """ Auxiliary functions for Rush Hour Agent"""
 
 
-def moveCursor(cursor, piece_bounds, selected):
+def moveCursor(cursor, piece_bounds, selected=None):
     """
     moveCursor simulates the cursor behavior of grabbing the intended piece from its closest bound.
 
@@ -34,7 +34,7 @@ def moveCursor(cursor, piece_bounds, selected):
     path = ""
 
     # if a car is selected, we must release it before moving the cursor
-    if selected != "":
+    if selected is not None and selected!= "":
         path += " "
 
     # while cursor doesn't reach closest piece bound
@@ -73,7 +73,7 @@ def detectStuck(last_command, grid, old_grid, selected):
     return 0
 
 # function to detect crazy car
-def detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command):
+def detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command, old_cursor):
     dimension = dimensions[0]
     # initial iteration, no crazy car can happen
     if old_grid == "":
@@ -87,12 +87,27 @@ def detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command):
                 return 1
             else:
                 # this means it detected a change in the map and the selected piece is the same
+                # oooo__1oo       d   d
                 cursor_x, cursor_y = cursor
-                if (grid[i%dimension + 1] == selected and cursor_x != i%dimension + 1): # crazy that horizontally shifted while selected
-                    print("HORIZONTALLY SHIFTED")
+                old_cursor_x, old_cursor_y = cursor_x, cursor_y
+                if last_command == "a":
+                    old_cursor_x += 1
+                elif last_command == "d":
+                    old_cursor_x -= 1
+                elif last_command == "w":
+                    old_cursor_y += 1
+                elif last_command == "s":
+                    old_cursor_y -= 1
+
+                if old_cursor_x != old_cursor[0] or old_cursor_y != old_cursor[1]:
+                    print("Crazy while selected.")
                     return 1
                 
-                elif (grid[i // dimension + 1] == selected and cursor_y != i // dimension + 1): # crazy that vertically shifted while selected
-                    print("VERTICALLY SHIFTED")
-                    return 1
+                # if (grid[i%dimension + 1] == selected and cursor_x != i%dimension + 1): # crazy that horizontally shifted while selected
+                #     print("HORIZONTALLY SHIFTED")
+                #     return 1
+                
+                # elif (grid[i // dimension + 1] == selected and cursor_y != i // dimension + 1): # crazy that vertically shifted while selected
+                #     print("VERTICALLY SHIFTED")
+                #     return 1
     return 0

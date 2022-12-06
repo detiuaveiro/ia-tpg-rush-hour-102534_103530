@@ -25,6 +25,8 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
         commands = [] # list to store commands to send to game engine
         solution = 0  # init solution variable
         old_grid = ""  # used to be able to constantly sensor changes between states
+        immut_cursor = ""
+        old_cursor = ""
         last_command = ""   # used to detect 
         old_search_time = 0 # init old_search_time variable
         crazy = 0   # init crazy variable
@@ -39,10 +41,16 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                 speed = state.get("game_speed")
                 dimensions = state.get("dimensions")
                 cursor = state.get("cursor")
+                immut_cursor = cursor
                 rate = 1/speed
                 
-                crazy = detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command)
+                crazy = detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command, old_cursor)
                 stuck = detectStuck(last_command, grid, old_grid, selected)
+                
+                if crazy:
+                    print("crazy")
+                # if stuck:
+                #     print("stuck")
 
 
                 if stuck or (crazy and old_search_time < 1) or commands == []:
@@ -50,7 +58,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     
                     m = Matrix(grid)
                     if m.n > 6:                      
-                        t = SearchTree(m, "gulosa")
+                        t = SearchTree(m, "greedy")
                     else:
                         t = SearchTree(m, "breadth")
                     
@@ -87,7 +95,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                         cursor = (cursor_x, cursor_y)
                     
                     search_time = time() - start
-
+                    print("Search Time Taken:" + str(search_time))
                     if search_time >= rate:
                         for i in range(int(search_time // rate)):
                             commands.insert(0, '')
@@ -99,6 +107,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                     await websocket.send(json.dumps({"cmd": "key", "key": c})) # send key command to server - you must implement this send in the AI agent
 
                 old_grid = grid
+                old_cursor = immut_cursor
                 old_search_time = search_time
             
             except websockets.exceptions.ConnectionClosedOK:
