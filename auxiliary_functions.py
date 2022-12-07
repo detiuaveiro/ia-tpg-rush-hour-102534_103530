@@ -8,7 +8,7 @@ def moveCursor(cursor, piece_bounds, selected=None):
     moveCursor simulates the cursor behavior of grabbing the intended piece from its closest bound.
 
     moveCursor receives as parameters: 
-        - cursor - tuple of cursor coordinates
+        - cursor - list of cursor coordinates
         - piece_bounds - tuple of piece coordinate bounds
         - selected - string with the selected piece, if any.
     
@@ -62,13 +62,15 @@ def moveCursor(cursor, piece_bounds, selected=None):
     return path, cursorx, cursory
 
 
-def detectStuck(last_command, grid, old_grid, selected):
+def detectStuck(last_command, grid, old_grid, selected, last_selected):
     """
-    Simple function to detect if the command which the agent performed on the selected piece was executed or not.
+    Simple function to detect if the command which the agent performed on the selected piece was executed sucessfully or not.
     """
     if old_grid == "":
         return 0
     if selected != "" and last_command in ['a', 'd', 's', "w"] and grid == old_grid:
+        return 1
+    if selected == last_selected and last_command == " ":
         return 1
     return 0
 
@@ -87,9 +89,8 @@ def detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command, old_
                 return 1
             else:
                 # this means it detected a change in the map and the selected piece is the same
-                # oooo__1oo       d   d
-                cursor_x, cursor_y = cursor
-                old_cursor_x, old_cursor_y = cursor_x, cursor_y
+                # so we must check if it occurred an anomaly on the cursor coordinates
+                old_cursor_x, old_cursor_y = cursor
                 if last_command == "a":
                     old_cursor_x += 1
                 elif last_command == "d":
@@ -100,14 +101,6 @@ def detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command, old_
                     old_cursor_y -= 1
 
                 if old_cursor_x != old_cursor[0] or old_cursor_y != old_cursor[1]:
-                    print("Crazy while selected.")
                     return 1
-                
-                # if (grid[i%dimension + 1] == selected and cursor_x != i%dimension + 1): # crazy that horizontally shifted while selected
-                #     print("HORIZONTALLY SHIFTED")
-                #     return 1
-                
-                # elif (grid[i // dimension + 1] == selected and cursor_y != i // dimension + 1): # crazy that vertically shifted while selected
-                #     print("VERTICALLY SHIFTED")
-                #     return 1
+    
     return 0
