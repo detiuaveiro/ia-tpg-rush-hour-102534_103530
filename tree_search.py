@@ -80,6 +80,16 @@ class Matrix:
     def __lt__(self, other):
         return self.heuristic + self.cost < other.heuristic + other.cost
 
+class MatrixForGreedy(Matrix):
+    counter = 0
+
+    def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3], idx=0):
+        super().__init__(grid, action, parent, cost, heuristic, cursor)
+        MatrixForGreedy.counter += 1
+        self.idx = MatrixForGreedy.counter
+
+    def __lt__(self, other):
+        return (self.heuristic, self.idx) < (other.heuristic, other.idx)
 
 class AI:
     def copy(grid):
@@ -90,7 +100,6 @@ class AI:
 
     def cost(state: Matrix, action):
         return 1
-    
 
     def heuristic(state: Matrix):
         _, maxx, miny, _ = state.pieces["A"]
@@ -172,7 +181,8 @@ class SearchTree:
 
     def search2(self):
         while self.open_nodes != []:
-            node = self.open_nodes.pop(0)
+            node = heapq.heappop(self.open_nodes)
+            # node = self.open_nodes.pop(0)
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
@@ -187,11 +197,12 @@ class SearchTree:
                         continue
                 else:
                     self.grids_visited.add(newgrid)
-                newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic)
+                newnode = MatrixForGreedy(newgrid, [a], node, new_cost, new_heuristic)
                 newnode.set_bounds(a[0], bounds)
-                lnewnodes.append(newnode)
+                # lnewnodes.append(newnode)
+                heapq.heappush(self.open_nodes, newnode)
                 self.total_costs[newgrid] = newf
-            self.add_to_open(lnewnodes)
+            # self.add_to_open(lnewnodes)
         return None
     
     def search3(self):
@@ -283,6 +294,7 @@ def main():
                 for i, level in enumerate(levels):
                     matrix = Matrix(level)
                     if matrix.n > 6:
+                        matrix = MatrixForGreedy(level)
                         t = SearchTree(matrix, "greedy")
                         start = time()
                         result = t.search2()
