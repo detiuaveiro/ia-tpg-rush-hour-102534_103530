@@ -134,3 +134,5 @@ dmypy.json
 *.pdf
 
 run.sh
+benchmarks/
+tree_search_legacy.py

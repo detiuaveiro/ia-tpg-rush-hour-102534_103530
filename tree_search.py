@@ -160,11 +160,13 @@ class SearchTree:
         self.grids_visited = {root.grid}
         self.total_costs = {root.grid: 0}
         self.strategy = strategy
+        self.expanded_nodes = 0
         self.solution = None
 
     def search(self):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
+            self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
@@ -183,10 +185,11 @@ class SearchTree:
         while self.open_nodes != []:
             node = heapq.heappop(self.open_nodes)
             # node = self.open_nodes.pop(0)
+            self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
-            lnewnodes = []
+            # lnewnodes = []
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
                 new_cost = node.cost + AI.cost(node, a)
@@ -208,6 +211,7 @@ class SearchTree:
     def search3(self):
         while self.open_nodes != []:
             node = heapq.heappop(self.open_nodes)
+            self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
@@ -233,6 +237,7 @@ class SearchTree:
     def search4(self):
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
+            self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
@@ -257,71 +262,85 @@ class SearchTree:
         return None
 
     def add_to_open(self, lnewnodes):
-        if self.strategy == 'breadth':
-            self.open_nodes.extend(lnewnodes)
-        elif self.strategy == 'depth':
+        if self.strategy == 'depth':
             self.open_nodes[:0] = lnewnodes
-        elif self.strategy == 'a*':
+        elif self.strategy == 'breadth':
             self.open_nodes.extend(lnewnodes)
-            self.open_nodes.sort(key=lambda x: x.cost + x.heuristic)
         elif self.strategy == 'greedy':
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.heuristic)
         elif self.strategy == 'uniform':
-            pass
+            self.open_nodes.extend(lnewnodes)
+            self.open_nodes.sort(key=lambda x: x.cost)
+        elif self.strategy == 'a*':
+            self.open_nodes.extend(lnewnodes)
+            self.open_nodes.sort(key=lambda x: x.cost + x.heuristic)
 
 def main():
-    if False: # alternar entre breadth e a*
-        with open("levels2.txt", "r") as f:
+    LEVELS_PACKS = ["levels1", "levels2", "levels"]
+    STRATEGIES = ["depth", "breadth", "greedy", "uniform", "a*"]
+    SKIP_CONTEXTS = {("levels2", "a*"), ("levels", "a*")}
+    
+    for LEVELS_PACK in LEVELS_PACKS:
+        with open(LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/hybrid.csv", "w") as fout:
             levels = f.readlines()
             total_time = 0.0
             total_moves = 0
-            for level in levels:
+            for i, level in enumerate(levels):
                 matrix = Matrix(level)
-                t = SearchTree(matrix, "breadth")
-                start = time()
-                result = t.search()
-                total_time += time() - start
+                if matrix.n > 6:
+                    matrix = MatrixForGreedy(level)
+                    t = SearchTree(matrix, "greedy")
+                    start = time()
+                    result = t.search2()
+                    total_time += time() - start
+                else:
+                    t = SearchTree(matrix, "uniform")
+                    start = time()
+                    result = t.search3()
+                    total_time += time() - start
                 total_moves += len(result)
-                # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
-            print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
-    else:
-        with open("levels2.txt", "r") as f:
-            if True:
+                result = f"{i},{total_time},{t.expanded_nodes},{total_moves}"
+                fout.write(result + "\n")
+            print(f"{LEVELS_PACK} HYBRID -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
+        
+        for STRATEGY in STRATEGIES:
+            if (LEVELS_PACK, STRATEGY) in SKIP_CONTEXTS:
+                continue
+            with open(LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/{STRATEGY}.csv", "w") as fout:
                 levels = f.readlines()
                 total_time = 0.0
                 total_moves = 0
                 for i, level in enumerate(levels):
                     matrix = Matrix(level)
-                    if matrix.n > 6:
+                    if STRATEGY == "greedy":
                         matrix = MatrixForGreedy(level)
-                        t = SearchTree(matrix, "greedy")
+                        t = SearchTree(matrix, STRATEGY)
                         start = time()
                         result = t.search2()
                         total_time += time() - start
                     else:
-                        t = SearchTree(matrix, "uniform")
-                        start = time()
-                        result = t.search3()
-                        total_time += time() - start
-                        
+                        t = SearchTree(matrix, STRATEGY)
+                        if STRATEGY == "depth":
+                            start = time()
+                            result = t.search()
+                            total_time += time() - start
+                        elif STRATEGY == "breadth":
+                            start = time()
+                            result = t.search()
+                            total_time += time() - start
+                        elif STRATEGY == "uniform":
+                            start = time()
+                            result = t.search3()
+                            total_time += time() - start
+                        elif STRATEGY == "a*":
+                            start = time()
+                            result = t.search4()
+                            total_time += time() - start
                     total_moves += len(result)
-                    #print("level: {}, {:4f} segundos, {} movimentações".format(i, time() - start, len(result)))
-                print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
-            elif True:
-                levels = f.readlines()
-                total_time = 0.0
-                total_moves = 0
-                for i, level in enumerate(levels):
-                    matrix = Matrix(level)
-                    t = SearchTree(matrix, "a*")
-                    start = time()
-                    result = t.search4()
-                    total_time += time() - start
-                    total_moves += len(result)
-                    print("level: {}, {:4f} segundos, {} movimentações".format(i, time() - start, len(result)))
-                print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
-
-
+                    result = f"{i},{total_time},{t.expanded_nodes},{total_moves}"
+                    fout.write(result + "\n")
+                print(f"{LEVELS_PACK} {STRATEGY} -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
+    
 if __name__ == "__main__":
     main()

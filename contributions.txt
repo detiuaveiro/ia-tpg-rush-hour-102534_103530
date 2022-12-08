@@ -1,1 +1,0 @@
-Leo + Pedro -> substituição de lista por set
