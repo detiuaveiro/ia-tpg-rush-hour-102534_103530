@@ -83,7 +83,7 @@ class Matrix:
 class MatrixForGreedy(Matrix):
     counter = 0
 
-    def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3], idx=0):
+    def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3]):
         super().__init__(grid, action, parent, cost, heuristic, cursor)
         MatrixForGreedy.counter += 1
         self.idx = MatrixForGreedy.counter
