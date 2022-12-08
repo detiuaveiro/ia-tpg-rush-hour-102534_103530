@@ -185,16 +185,12 @@ class SearchTree:
                 if newgrid in self.grids_visited:
                     if newf >= self.total_costs[newgrid]:
                         continue
-                    newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic)
-                    newnode.set_bounds(a[0], bounds)
-                    self.total_costs[newgrid] = newf
-                    lnewnodes.append(newnode)
                 else:
-                    newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic)
-                    newnode.set_bounds(a[0], bounds)
-                    lnewnodes.append(newnode)
-                    self.total_costs[newgrid] = newf
                     self.grids_visited.add(newgrid)
+                newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic)
+                newnode.set_bounds(a[0], bounds)
+                lnewnodes.append(newnode)
+                self.total_costs[newgrid] = newf
             self.add_to_open(lnewnodes)
         return None
     
@@ -279,7 +275,7 @@ def main():
                 # print("{:4f} segundos, {} movimentações".format(time() - start, len(result)))
             print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
     else:
-        with open("levels.txt", "r") as f:
+        with open("levels2.txt", "r") as f:
             if True:
                 levels = f.readlines()
                 total_time = 0.0
@@ -298,7 +294,7 @@ def main():
                         total_time += time() - start
                         
                     total_moves += len(result)
-                    print("level: {}, {:4f} segundos, {} movimentações".format(i, time() - start, len(result)))
+                    #print("level: {}, {:4f} segundos, {} movimentações".format(i, time() - start, len(result)))
                 print("{:4f} segundos, {} movimentações".format(total_time, total_moves))
             elif True:
                 levels = f.readlines()
