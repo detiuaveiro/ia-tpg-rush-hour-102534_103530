@@ -345,14 +345,15 @@ def main():
                     t = SearchTree(matrix, "greedy")
                     start = time()
                     result = t.search2()
-                    total_time += time() - start
+                    time_ = time() - start
                 else:
                     t = SearchTree(matrix, "uniform")
                     start = time()
                     result = t.search3()
-                    total_time += time() - start
+                    time_ = time() - start
+                total_time += time_
                 total_moves += len(result)
-                result = f"{i},{total_time},{t.expanded_nodes},{total_moves}"
+                result = f"{i},{time_},{t.expanded_nodes},{total_moves}"
                 fout.write(result + "\n")
             print(f"{LEVELS_PACK} HYBRID -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
         
@@ -370,27 +371,28 @@ def main():
                         t = SearchTree(matrix, STRATEGY)
                         start = time()
                         result = t.search2()
-                        total_time += time() - start
+                        time_ = time() - start
                     else:
                         t = SearchTree(matrix, STRATEGY)
                         if STRATEGY == "depth":
                             start = time()
                             result = t.search()
-                            total_time += time() - start
+                            time_ = time() - start
                         elif STRATEGY == "breadth":
                             start = time()
                             result = t.search()
-                            total_time += time() - start
+                            time_ = time() - start
                         elif STRATEGY == "uniform":
                             start = time()
                             result = t.search3()
-                            total_time += time() - start
+                            time_ = time() - start
                         elif STRATEGY == "a*":
                             start = time()
                             result = t.search4()
-                            total_time += time() - start
+                            time_ = time() - start
+                    total_time += time_
                     total_moves += len(result)
-                    result = f"{i},{total_time},{t.expanded_nodes},{total_moves}"
+                    result = f"{i},{time_},{t.expanded_nodes},{total_moves}"
                     fout.write(result + "\n")
                 print(f"{LEVELS_PACK} {STRATEGY} -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
     
