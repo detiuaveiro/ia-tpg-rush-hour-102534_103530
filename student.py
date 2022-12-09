@@ -83,7 +83,7 @@ async def agent_loop(server_address="localhost:5500", agent_name="student"):
                             commands += list(cursor_moves)
                             selected = piece
                         commands += command
-                        # simulate cursor executing given command and update its coordinates
+                        # simulate cursor executing given command and update cursor and selected piece coordinates
                         if command == "w":
                             cursor_y -= 1
                             m.set_bounds(selected, tuple(map(sum, zip(piece_bounds,(0, 0, -1, -1)))))
