@@ -136,3 +136,4 @@ dmypy.json
 run.sh
 benchmarks/
 tree_search_legacy.py
+.vscode/

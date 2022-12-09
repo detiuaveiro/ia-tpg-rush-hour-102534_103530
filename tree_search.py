@@ -107,7 +107,13 @@ class MatrixForGreedy(Matrix):
         return (self.heuristic, self.idx) < (other.heuristic, other.idx)
 
 class MatrixForAStar(Matrix):
+    """
+    Tree node with a puzzle state, for A* search.
+    Instances are firstly compared by total cost (heuristic + cost) and then, if necessary, by creation order.
+    """
+
     counter = 0
+
     def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3]):
         super().__init__(grid, action, parent, cost, heuristic, cursor)
         MatrixForAStar.counter += 1
@@ -341,7 +347,7 @@ def main():
 
     LEVELS_PACKS = ["levels1", "levels2", "levels"]
     STRATEGIES = ["depth", "breadth", "greedy", "uniform", "a*"]
-    SKIP_CONTEXTS = {("levels2", "a*"), ("levels", "a*")}
+    SKIP_CONTEXTS = {} # ex.: SKIP_CONTEXTS = [("levels2", "depth"")]
     
     for LEVELS_PACK in LEVELS_PACKS:
         with open(LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/hybrid.csv", "w") as fout:
@@ -405,6 +411,7 @@ def main():
                     result = f"{i},{time_},{t.expanded_nodes},{total_moves}"
                     fout.write(result + "\n")
                 print(f"{LEVELS_PACK} {STRATEGY} -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
-    
+        print()
+
 if __name__ == "__main__":
     main()

@@ -38,6 +38,8 @@ Numa primeira fase do projeto, entendemos que deveríamos dividir o desenvolvime
 - Numa primeira versão do search, a estrutura grid_visited era uma lista. Após discutirmos estratégias de otimização, com o grupo "102536_102778", concluímos que seria mais eficiente utilizar um conjunto (set), uma vez que a operação de verificação de pertença (lookup) apresenta uma complexidade O(1), enquanto que, nas listas, é O(n). Em versões posteriores, mantivemos esta estrutura. Contudo, há que salientar que a complexidade do lookup com chave, nos dicionários, é também O(1).
 - Tendo por base conhecimentos prévios de Algoritmos e Estruturas de Dados, ponderámos a utilização de uma min-heap, como estrutura para guardar os nós por explorar. Para esse efeito, aproveitámos o módulo heapq, nativo do Python. Os resultados foram bastante positivos, dado que cada inserção garante a ordenação da heap, não sendo necessária qualquer operação ulterior, com vista a obter o valor mínimo. O critério de ordenação é definido pelo método **lt** da classe de objetos que compõem a heap, neste caso, a Matrix ou a MatrixForGreedy.
 
+### HEURÍSTICA
+
 ### Agente
 
 O agente em cada iteração sensoriza o jogo através das funções detectCrazy e detectStuck.
