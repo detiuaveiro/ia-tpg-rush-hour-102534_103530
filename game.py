@@ -20,7 +20,7 @@ LEVEL: Dict[int, Map] = {}
 class Game:
     """Main Class."""
 
-    def __init__(self, x: int = 6, y: int = 6) -> None:
+    def __init__(self, x: int = 8, y: int = 8) -> None:
         """Initialize Game."""
         logger.info("Game")
 
@@ -69,6 +69,9 @@ class Game:
         try:
             self.grid = self.levels[self.level]
             logger.info("NEXT LEVEL: %s", self.level)
+            self.dimensions = Coordinates(self.grid.grid_size, self.grid.grid_size)
+            self.cursor = Coordinates(self.dimensions.x // 2, self.dimensions.y // 2)
+            
         except KeyError:
             logger.info("No more levels... You WIN!")
             self.stop()
@@ -114,6 +117,9 @@ class Game:
                 random_direction = random.choice([Coordinates(0,-1), Coordinates(0, 1), Coordinates(-1, 0), Coordinates(1, 0)])
                 self.grid.move(random_piece, random_direction)
                 logger.debug("Crazy driver: %s moved %s", random_piece, random_direction)
+                if random_piece == self._selected:
+                    self.cursor.x += random_direction.x
+                    self.cursor.y += random_direction.y
             except MapException:
                 pass
 
@@ -149,13 +155,6 @@ class Game:
                     ):
                         self.grid.move(self._selected, Coordinates(1, 0))
                         self.cursor.x += 1
-                        # Test victory:
-                        if (
-                            self._selected == self.grid.player_car
-                            and self.grid.test_win()
-                        ):
-                            logger.info("Level %s COMPLETED", self.level)
-                            self.next_level()
                 except MapException as exc:
                     logger.error("Can't move %s: %s", self._selected, exc)
             else:
@@ -172,6 +171,13 @@ class Game:
                 ):
                     self.cursor.x += 1
 
+        # Test victory:
+        if self.grid.test_win():
+            logger.info("Level %s COMPLETED", self.level)
+            self.next_level()
+
         self._lastkeypress = "-"
+
+        return self.info()
 
         return self.info()
