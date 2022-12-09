@@ -131,7 +131,7 @@ dmypy.json
 .pyre/
 
 # Pdf
-*.pdf
+IA_Rush_Hour.pdf
 
 run.sh
 benchmarks/

@@ -138,6 +138,7 @@ class AI:
 
     def heuristic(state: Matrix):
         _, maxx, miny, _ = state.pieces["A"]
+        # number of pieces that block the way from A to the exit
         return sum(1 for x in range(maxx+1, state.n) if state.get(x, miny) != "o")
 
     def actions(state: Matrix):
