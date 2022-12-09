@@ -8,7 +8,12 @@ from time import time
 import heapq
 from auxiliary_functions import moveCursor
 
+
 class Matrix:
+    """
+    Tree node with a puzzle state.
+    """
+
     def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3]):
         if " " in grid:
             self.grid = grid.split(" ")[1]
@@ -19,23 +24,26 @@ class Matrix:
         self.cost = cost
         self.heuristic = heuristic
         self.cursor = cursor
-        # Flyweight pattern
+
         if parent is not None:
-            self.pieces = parent.pieces.copy() #copy by value
-            self.horizontal_pieces = parent.horizontal_pieces #copy by reference
-            self.vertical_pieces = parent.vertical_pieces #copy by reference
+            self.pieces = parent.pieces.copy() # copy by value
+            self.horizontal_pieces = parent.horizontal_pieces # copy by reference
+            self.vertical_pieces = parent.vertical_pieces # copy by reference
             self.path = parent.path + action
             return
+
         self.pieces = {}
         self.horizontal_pieces = []
         self.vertical_pieces = []
         self.path = action
+
         for x in range(self.n):
             for y in range(self.n):
                 idx = y*self.n+x
                 char = self.grid[idx]
                 if char in self.pieces:
                     minx, maxx, miny, maxy = self.pieces[char]
+                    # obter os limites da peça
                     self.pieces[char] = (min(minx, x), max(maxx, x), min(miny, y), max(maxy, y))
                 else:
                     if char not in ["o", "x"]:
@@ -80,13 +88,20 @@ class Matrix:
     def __lt__(self, other):
         return self.heuristic + self.cost < other.heuristic + other.cost
 
+
 class MatrixForGreedy(Matrix):
+    """
+    Tree node with a puzzle state, for greedy search.
+    Instances are firstly compared by heuristic and then, if necessary, by creation order.
+    """
+    
     counter = 0
 
     def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3]):
         super().__init__(grid, action, parent, cost, heuristic, cursor)
         MatrixForGreedy.counter += 1
-        self.idx = MatrixForGreedy.counter
+        # this attribute ensures creation order, if heuristic is equal
+        self.idx = MatrixForGreedy.counter 
 
     def __lt__(self, other):
         return (self.heuristic, self.idx) < (other.heuristic, other.idx)
@@ -102,6 +117,10 @@ class MatrixForAStar(Matrix):
         return (self.heuristic + self.cost, self.idx) < (other.heuristic + other.cost, other.idx)
 
 class AI:
+    """
+        Non-instantiable class with AI functions (and other auxiliary functions).
+    """
+    
     def copy(grid):
         return (grid + " ")[:-1]
 
@@ -117,6 +136,7 @@ class AI:
 
     def actions(state: Matrix):
         actions = []
+        
         for char, bounds in state.pieces.items():
             minx, maxx, miny, maxy = bounds
             if state.is_horizontal(char):
@@ -129,6 +149,7 @@ class AI:
                     actions.append((char, "w"))
                 if maxy < state.n-1 and state.get(minx, maxy+1) == "o": # minx = maxx
                     actions.append((char, "s"))
+
         return actions
 
     def result(state: Matrix, action):
@@ -136,6 +157,7 @@ class AI:
         (minx, maxx, miny, maxy) = state.pieces[char]
         newgrid = AI.copy(state.grid)
         n = state.n
+        
         if direction == "a":
             newgrid = AI.replace_char(newgrid, miny*n+maxx, "o") # miny = maxy
             newgrid = AI.replace_char(newgrid, miny*n+minx-1, char) # miny = maxy
@@ -156,6 +178,7 @@ class AI:
             newgrid = AI.replace_char(newgrid, (maxy+1)*n+minx, char) # minx = maxx
             miny += 1
             maxy += 1
+        
         bounds = (minx, maxx, miny, maxy)
         return newgrid, bounds
 
@@ -164,6 +187,9 @@ class AI:
 
 
 class SearchTree:
+    """
+        Search tree whose nodes are instances of Matrix.
+    """
     def __init__(self, root: Matrix, strategy='breadth'):
         self.root = root
         self.open_nodes = [root]
@@ -174,6 +200,11 @@ class SearchTree:
         self.solution = None
 
     def search(self):
+        """
+            Simplest version for depth-first and breadth-first search.
+            It doesn't take into account cumulative costs or heuristics.
+        """
+
         while self.open_nodes != []:
             node = self.open_nodes.pop(0)
             self.expanded_nodes += 1
@@ -189,43 +220,52 @@ class SearchTree:
                     lnewnodes.append(newnode)
                     self.grids_visited.add(newgrid)
             self.add_to_open(lnewnodes)
+
         return None
 
     def search2(self):
+        """
+            Developed for greedy search.
+            It takes into account nodes' depth and their heuristics.
+        """
+
         while self.open_nodes != []:
             node = heapq.heappop(self.open_nodes)
-            # node = self.open_nodes.pop(0)
             self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
-            # lnewnodes = []
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
                 new_cost = node.cost + AI.cost(node, a)
                 new_heuristic = AI.heuristic(node)
                 newf = new_cost + new_heuristic
+
                 if newgrid in self.grids_visited:
                     if newf >= self.total_costs[newgrid]:
                         continue
                 else:
                     self.grids_visited.add(newgrid)
+
                 newnode = MatrixForGreedy(newgrid, [a], node, new_cost, new_heuristic)
                 newnode.set_bounds(a[0], bounds)
-                # lnewnodes.append(newnode)
                 heapq.heappush(self.open_nodes, newnode)
                 self.total_costs[newgrid] = newf
-            # self.add_to_open(lnewnodes)
+
         return None
     
     def search3(self):
+        """
+            Developed for uniform search.
+            It takes into account the cumulative cost of the cursor path.
+        """
+
         while self.open_nodes != []:
             node = heapq.heappop(self.open_nodes)
             self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
-            # lnewnodes = []
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
                 path, cursorx, cursory = moveCursor(node.cursor, node.pieces[a[0]])
@@ -236,15 +276,20 @@ class SearchTree:
                         continue
                 else:
                     self.grids_visited.add(newgrid)
+
                 newnode = Matrix(newgrid, [a], node, new_cost, cursor=[cursorx, cursory])
                 newnode.set_bounds(a[0], bounds)
-                # lnewnodes.append(newnode)
                 self.total_costs[newgrid] = new_cost
                 heapq.heappush(self.open_nodes, newnode)
-            # self.add_to_open(lnewnodes)
+
         return None
     
     def search4(self):
+        """
+            Developed for A* search.
+            It takes into account the cumulative cost of the cursor path and nodes' heuristics.
+        """
+
         while self.open_nodes != []:
             node = heapq.heappop(self.open_nodes)
             self.expanded_nodes += 1
@@ -258,6 +303,7 @@ class SearchTree:
                 new_cost = node.cost + len(path) + 1
                 new_heuristic = AI.heuristic(node)
                 newf = new_cost + new_heuristic
+
                 if newgrid in self.grids_visited:
                     if newf >= self.total_costs[newgrid]:
                         continue
@@ -280,14 +326,19 @@ class SearchTree:
         elif self.strategy == 'greedy':
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.heuristic)
-        elif self.strategy == 'uniform':
+        elif self.strategy == 'uniform': # it won't be called, since we're using heapq
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.cost)
-        elif self.strategy == 'a*':
+        elif self.strategy == 'a*': # it won't be called, since we're using heapq
             self.open_nodes.extend(lnewnodes)
             self.open_nodes.sort(key=lambda x: x.cost + x.heuristic)
 
+
 def main():
+    """
+        This benchmark script runs 3 levels packs with different strategies.
+    """
+
     LEVELS_PACKS = ["levels1", "levels2", "levels"]
     STRATEGIES = ["depth", "breadth", "greedy", "uniform", "a*"]
     SKIP_CONTEXTS = {("levels2", "a*"), ("levels", "a*")}
@@ -304,14 +355,15 @@ def main():
                     t = SearchTree(matrix, "greedy")
                     start = time()
                     result = t.search2()
-                    total_time += time() - start
+                    time_ = time() - start
                 else:
                     t = SearchTree(matrix, "uniform")
                     start = time()
                     result = t.search3()
-                    total_time += time() - start
+                    time_ = time() - start
+                total_time += time_
                 total_moves += len(result)
-                result = f"{i},{total_time},{t.expanded_nodes},{total_moves}"
+                result = f"{i},{time_},{t.expanded_nodes},{total_moves}"
                 fout.write(result + "\n")
             print(f"{LEVELS_PACK} HYBRID -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
         
@@ -329,27 +381,28 @@ def main():
                         t = SearchTree(matrix, STRATEGY)
                         start = time()
                         result = t.search2()
-                        total_time += time() - start
+                        time_ = time() - start
                     else:
                         t = SearchTree(matrix, STRATEGY)
                         if STRATEGY == "depth":
                             start = time()
                             result = t.search()
-                            total_time += time() - start
+                            time_ = time() - start
                         elif STRATEGY == "breadth":
                             start = time()
                             result = t.search()
-                            total_time += time() - start
+                            time_ = time() - start
                         elif STRATEGY == "uniform":
                             start = time()
                             result = t.search3()
-                            total_time += time() - start
+                            time_ = time() - start
                         elif STRATEGY == "a*":
                             start = time()
                             result = t.search4()
-                            total_time += time() - start
+                            time_ = time() - start
+                    total_time += time_
                     total_moves += len(result)
-                    result = f"{i},{total_time},{t.expanded_nodes},{total_moves}"
+                    result = f"{i},{time_},{t.expanded_nodes},{total_moves}"
                     fout.write(result + "\n")
                 print(f"{LEVELS_PACK} {STRATEGY} -> {total_time} seconds, {t.expanded_nodes} nodes expanded, {total_moves} moves")
     
