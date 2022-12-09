@@ -27,10 +27,10 @@ def bar_graph(filename):
 
 """
 levels1.txt: pack de níveis 6x6 da entrega preliminar
- 1) Breadth
- 2) Uniform
- 3) Greedy
- 4) A*
+ 1) Breadth 488 640
+ 2) Uniform 489 739
+ 3) Greedy 487 299
+ 4) A* 489 576
 """
 
 # Gráfico com retas x = nível, y = tempo de execução, para cada strategy
@@ -40,10 +40,10 @@ levels1.txt: pack de níveis 6x6 da entrega preliminar
 
 """
  levels2.txt: pack de níveis 8x8
- 1) Breadth
- 2) Uniform
- 3) Greedy
- 4) A*
+ 1) Breadth 1 041 039
+ 2) Uniform 1 040 375
+ 3) Greedy 1 041 987
+ 4) A* 1 039 496
 """
 
 # Gráfico com retas x = nível, y = tempo de execução, para cada strategy
@@ -53,11 +53,11 @@ levels1.txt: pack de níveis 6x6 da entrega preliminar
 
 """
  levels.txt: pack definitivo para a entrega final
- 1) Breadth
- 2) Uniform
- 3) Greedy
- 4) A*
- 5) Híbrido (Uniform para 6x6 + Greedy para 8x8)
+ 1) Breadth 1 556 748
+ 2) Uniform 1 557 267
+ 3) Greedy 1 556 135
+ 4) A* 1 556 969
+ 5) Híbrido (Uniform para 6x6 + Greedy para 8x8) 1 558 015
 """
 
 # Gráfico com retas x = nível, y = tempo de execução, para cada strategy

@@ -8,9 +8,9 @@ def moveCursor(cursor, piece_bounds, selected=None):
     moveCursor simulates the cursor behavior of grabbing the intended piece from its closest bound.
 
     moveCursor receives as parameters: 
-        - cursor - list of cursor coordinates
-        - piece_bounds - tuple of piece coordinate bounds
-        - selected - string with the selected piece, if any.
+        - cursor - list of cursor coordinates;
+        - piece_bounds - tuple of piece coordinate bounds;
+        - selected - string with the selected piece, if any;
     
     It returns the tuple (path, cursorx, cursory):
         - path - a string with the moves the cursor needs to make;
@@ -65,6 +65,15 @@ def moveCursor(cursor, piece_bounds, selected=None):
 def detectStuck(last_command, grid, old_grid, selected, last_selected):
     """
     Simple function to detect if the command which the agent performed on the selected piece was executed sucessfully or not.
+
+    It takes as parameters:
+    * last_command - string with the last recorded command which was sent to the game;
+    * grid - string which reflects current state of the game ;
+    * old_grid - string which reflects last recorded state of the game;
+    * selected - string with currently selected piece, if any;
+    * last_selected - string with the last recorded selected piece, if any.
+
+    It returns the boolean value "1" if it is stuck or "0" if it is not stuck.
     """
     if old_grid == "":
         return 0
@@ -74,8 +83,22 @@ def detectStuck(last_command, grid, old_grid, selected, last_selected):
         return 1
     return 0
 
-# function to detect crazy car
+
 def detectCrazy(grid, old_grid, selected, cursor, dimensions, last_command, old_cursor):
+    """
+    Function to detect if a crazy car has occured.
+
+    It takes as parameters:
+    * grid - string which reflects current state of the game;
+    * old_grid - string which reflects last recorded state of the game;
+    * selected - string with selected piece, if any;
+    * cursor - array with the current cursor coordinates;
+    * dimensions - array with the dimensions of the grid;
+    * last_command - string with the last recorded command which was sent to the game;
+    * old_cursor - array with the last recorded state of the cursor coordinates;
+
+    It returns a boolean value "1" when crazy occured and "0" when crazy did not occured.
+    """
     dimension = dimensions[0]
     # initial iteration, no crazy car can happen
     if old_grid == "":

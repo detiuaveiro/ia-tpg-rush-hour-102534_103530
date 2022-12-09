@@ -91,6 +91,16 @@ class MatrixForGreedy(Matrix):
     def __lt__(self, other):
         return (self.heuristic, self.idx) < (other.heuristic, other.idx)
 
+class MatrixForAStar(Matrix):
+    counter = 0
+    def __init__(self, grid, action=[], parent=None, cost=0, heuristic=0, cursor=[3, 3]):
+        super().__init__(grid, action, parent, cost, heuristic, cursor)
+        MatrixForAStar.counter += 1
+        self.idx = MatrixForAStar.counter
+
+    def __lt__(self, other):
+        return (self.heuristic + self.cost, self.idx) < (other.heuristic + other.cost, other.idx)
+
 class AI:
     def copy(grid):
         return (grid + " ")[:-1]
@@ -236,12 +246,12 @@ class SearchTree:
     
     def search4(self):
         while self.open_nodes != []:
-            node = self.open_nodes.pop(0)
+            node = heapq.heappop(self.open_nodes)
             self.expanded_nodes += 1
             if AI.goal_test(node):
                 self.solution = node
                 return node.path
-            lnewnodes = []
+            #lnewnodes = []
             for a in AI.actions(node):
                 newgrid, bounds = AI.result(node, a)
                 path, cursorx, cursory = moveCursor(node.cursor, node.pieces[a[0]])
@@ -254,11 +264,12 @@ class SearchTree:
                 else:
                     self.grids_visited.add(newgrid)
 
-                newnode = Matrix(newgrid, [a], node, new_cost, new_heuristic, [cursorx, cursory])
+                newnode = MatrixForAStar(newgrid, [a], node, new_cost, new_heuristic, [cursorx, cursory])
                 newnode.set_bounds(a[0], bounds)
-                lnewnodes.append(newnode)
+                #lnewnodes.append(newnode)
                 self.total_costs[newgrid] = newf
-            self.add_to_open(lnewnodes)
+                heapq.heappush(self.open_nodes, newnode)
+            #self.add_to_open(lnewnodes)
         return None
 
     def add_to_open(self, lnewnodes):
