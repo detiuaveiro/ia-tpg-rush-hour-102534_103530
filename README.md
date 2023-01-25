@@ -22,13 +22,13 @@ _Recomenda-se a criação de um ambiente virtual (virtualenv)._
 
 ## Execução do projeto
 Servidor:
-`$ python3 server.py`
+`$ python3 game/server.py`
 
 *Viewer*:
-`$ python3 viewer.py`
+`$ python3 game/viewer.py`
 
 Cliente:
-- `$ python3 client.py` (para jogar manualmente com as setas)
+- `$ python3 game/client.py` (para jogar manualmente com as setas)
 - `$ python3 student.py` (para correr o agente inteligente)
 
 ## Créditos

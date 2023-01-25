@@ -1,4 +1,4 @@
-from common import *
+from game.common import *
 
 """ Auxiliary functions for Rush Hour Agent"""
 

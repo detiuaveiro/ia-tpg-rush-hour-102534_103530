@@ -9,7 +9,7 @@ import getpass
 import json
 import os
 import websockets
-from common import *
+from game.common import *
 from tree_search import *
 from auxiliary_functions import moveCursor, detectStuck, detectCrazy
 

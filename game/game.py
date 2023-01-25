@@ -25,7 +25,7 @@ class Game:
         logger.info("Game")
 
         self.levels = {}
-        with open("levels.txt", "r") as f:
+        with open("game/levels/levels.txt", "r") as f:
             for lvl, map_str in enumerate(f.readlines(), start=1):
                 map = Map(map_str.strip())
                 self.levels[map.pieces] = map
