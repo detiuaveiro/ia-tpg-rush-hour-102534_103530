@@ -1,41 +1,36 @@
-# ia-rush
+# "Rush Hour" - Agente Inteligente
 
-Projecto de Inteligência Artificial 2022 - Rush Hour
+No projeto prático de Inteligência Artificial, os alunos foram desafiados a implementar um agente inteligente, capaz de resolver autonomamente os níveis do jogo Rush Hour, cujo código fonte foi disponibilizado pelo Prof. Diogo Gomes.
 
-## How to install
+Este jogo 2D consiste num quebra-cabeças de blocos deslizantes, em que o objetivo é mover o "carro" vermelho para "fora da garagem", isto é, mover o bloco para o limite direito da área de jogo (de dimensão variável). Para esse efeito, é necessário desimpedir o caminho, alterando a posição dos outros carros.
 
-Make sure you are running Python 3.7 or higher
+<div style="text-align:center">
+<img src="https://www.michaelfogleman.com/static/rush/top15.png?bust=1531758494" width="300">
+</div>
+
+**Fonte**: [https://www.michaelfogleman.com/static/rush/](https://www.michaelfogleman.com/static/rush/)
+
+
+## Explicação dos algoritmos implementados
+Encontra-se no ficheiro [presentation.pdf](presentation.pdf)
+
+## Instalação de dependências
 
 `$ pip install -r requirements.txt`
 
-_Tip: you might want to create a virtualenv first_
+_Recomenda-se a criação de um ambiente virtual (virtualenv)._
 
-## How to play
-
-open 3 terminals:
-
+## Execução do projeto
+Servidor:
 `$ python3 server.py`
 
+*Viewer*:
 `$ python3 viewer.py`
 
-`$ python3 client.py`
+Cliente:
+- `$ python3 client.py` (para jogar manualmente com as setas)
+- `$ python3 student.py` (para correr o agente inteligente)
 
-to play using the sample client make sure the client pygame window has focus
-
-### Keys
-
-Directions: arrows
-
-## Debug Installation
-
-Make sure pygame is properly installed:
-
-python -m pygame.examples.aliens
-
-# Tested on:
-
-- OSX Monterey 12.5.1
-
-# Tested on:
-
-- OSX Monterey 12.5.1
+## Créditos
+- Rafael Gonçalves (102534)
+- André Butuc (103530)

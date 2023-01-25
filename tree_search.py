@@ -351,7 +351,7 @@ def main():
     SKIP_CONTEXTS = {} # ex.: SKIP_CONTEXTS = [("levels2", "depth"")]
     
     for LEVELS_PACK in LEVELS_PACKS:
-        with open(LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/hybrid.csv", "w") as fout:
+        with open("levels/" + LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/hybrid.csv", "w") as fout:
             levels = f.readlines()
             total_time = 0.0
             total_moves = 0
@@ -377,7 +377,7 @@ def main():
         for STRATEGY in STRATEGIES:
             if (LEVELS_PACK, STRATEGY) in SKIP_CONTEXTS:
                 continue
-            with open(LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/{STRATEGY}.csv", "w") as fout:
+            with open("levels/" + LEVELS_PACK + ".txt", "r") as f, open(f"benchmarks/{LEVELS_PACK}/{STRATEGY}.csv", "w") as fout:
                 levels = f.readlines()
                 total_time = 0.0
                 total_moves = 0
