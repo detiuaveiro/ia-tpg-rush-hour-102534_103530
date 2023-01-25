@@ -1,8 +1,8 @@
 # "Rush Hour" - Agente Inteligente
 
-No projeto prático de Inteligência Artificial, os alunos foram desafiados a implementar um agente inteligente, capaz de resolver autonomamente os níveis do jogo Rush Hour, cujo código fonte foi disponibilizado pelo Prof. Diogo Gomes.
+No projeto de Inteligência Artificial, os alunos foram desafiados a implementar um agente inteligente, capaz de resolver autonomamente os níveis do jogo Rush Hour, cujo código fonte foi disponibilizado pelo Prof. Diogo Gomes.
 
-Este jogo 2D consiste num quebra-cabeças de blocos deslizantes, em que o objetivo é mover o "carro" vermelho para "fora da garagem", isto é, mover o bloco para o limite direito da área de jogo (de dimensão variável). Para esse efeito, é necessário desimpedir o caminho, alterando a posição dos outros carros.
+Este jogo 2D consiste num quebra-cabeças de blocos deslizantes, em que o objetivo é mover o "carro" vermelho para "fora da garagem", isto é, para o limite direito da área de jogo (de dimensão variável). Para esse efeito, é necessário desimpedir o caminho, alterando a posição dos outros carros.
 
 <div style="text-align:center">
 <img src="https://www.michaelfogleman.com/static/rush/top15.png?bust=1531758494" width="300">
